@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Loader2, AlertCircle, Calendar, Trophy, Newspaper } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, Trophy, Newspaper, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -20,21 +20,40 @@ interface ScorerItem {
   goals: number;
 }
 
+interface AssistItem {
+  player: { name: string };
+  team: { name: string; crest: string };
+  assists: number;
+}
+
 interface MatchItem {
   id: number;
   utcDate: string;
   status: string;
+  stage: string;
   homeTeam: { name: string; crest: string };
   awayTeam: { name: string; crest: string };
   score: { fullTime: { home: number | null; away: number | null } };
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  'LAST_16': 'Octavos de final',
+  'QUARTER_FINALS': 'Cuartos de final',
+  'SEMI_FINALS': 'Semifinales',
+  'THIRD_PLACE': 'Tercer lugar',
+  'FINAL': 'Final'
+};
+
+const STAGE_ORDER = ['LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
+
 export default function FifePage() {
-  const [activeTab, setActiveTab] = useState<'news' | 'scorers' | 'matches'>('news');
+  const [activeTab, setActiveTab] = useState<'news' | 'stats' | 'matches'>('news');
+  const [statsTab, setStatsTab] = useState<'scorers' | 'assists'>('scorers');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
     news: NewsItem[];
     scorers: ScorerItem[];
+    assists: AssistItem[];
     matches: MatchItem[];
     usingMockData: boolean;
   } | null>(null);
@@ -56,13 +75,13 @@ export default function FifePage() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.08
       }
     }
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
   };
 
@@ -74,11 +93,21 @@ export default function FifePage() {
     );
   }
 
+  // Group matches by stage
+  const groupedMatches: Record<string, MatchItem[]> = {};
+  data?.matches.forEach((match) => {
+    const stage = match.stage || 'GROUP_STAGE';
+    if (!groupedMatches[stage]) {
+      groupedMatches[stage] = [];
+    }
+    groupedMatches[stage].push(match);
+  });
+
   return (
     <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-6xl mx-auto pb-24 md:pb-12">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Espacio Fife ⚽</h1>
-        <p className="text-muted-foreground">Noticias, tablas y estadísticas del balompié.</p>
+        <p className="text-muted-foreground">Noticias de estrellas, fixture interactivo y estadísticas del Mundial.</p>
       </header>
 
       {data?.usingMockData && (
@@ -87,18 +116,18 @@ export default function FifePage() {
           <div>
             <p className="text-sm font-semibold">Modo Demostración Activo</p>
             <p className="text-xs mt-1 opacity-90">
-              Las noticias son reales, pero la tabla de goleadores y los partidos son de demostración. 
-              Para ver datos reales en vivo, regístrate gratis en <a href="https://www.football-data.org/" target="_blank" rel="noopener noreferrer" className="underline font-bold">football-data.org</a> y agrega la API key en tu archivo <code>.env</code> como <code>FOOTBALL_DATA_API_KEY</code>.
+              Las noticias de estrellas y Mundial son reales (vía Marca), pero el fixture y estadísticas son de demostración. 
+              Para ver datos reales en vivo, configura tu <code>FOOTBALL_DATA_API_KEY</code>.
             </p>
           </div>
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Main Tabs */}
       <div className="flex bg-muted/30 p-1.5 rounded-2xl mb-8 max-w-md mx-auto relative z-10">
         {[
           { id: 'news', label: 'Noticias', icon: Newspaper },
-          { id: 'scorers', label: 'Goleadores', icon: Trophy },
+          { id: 'stats', label: 'Estadísticas', icon: Trophy },
           { id: 'matches', label: 'Partidos', icon: Calendar }
         ].map((tab) => {
           const Icon = tab.icon;
@@ -172,39 +201,77 @@ export default function FifePage() {
           </motion.div>
         )}
 
-        {activeTab === 'scorers' && (
+        {activeTab === 'stats' && (
           <motion.div
-            key="scorers"
-            initial={{ opacity: 0, y: 20 }}
+            key="stats"
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -15 }}
             className="max-w-2xl mx-auto bg-card border border-muted/50 rounded-[2rem] shadow-sm overflow-hidden"
           >
-            <div className="p-6 border-b border-muted/50 bg-muted/10 flex justify-between items-center">
-              <h3 className="font-bold text-lg">Máximos Goleadores</h3>
-              <span className="text-xs text-muted-foreground">Copa del Mundo FIFA</span>
+            {/* Sub Tabs for Scorers and Assists */}
+            <div className="p-4 bg-muted/15 border-b border-muted/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h3 className="font-bold text-lg pl-2">Estadísticas del Mundial</h3>
+              <div className="flex bg-muted/30 p-1 rounded-xl">
+                <button
+                  onClick={() => setStatsTab('scorers')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statsTab === 'scorers' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Goleadores
+                </button>
+                <button
+                  onClick={() => setStatsTab('assists')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statsTab === 'assists' ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Asistidores
+                </button>
+              </div>
             </div>
+
             <div className="divide-y divide-muted/30">
-              {data?.scorers.map((item, idx) => (
-                <div key={idx} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-bold text-muted-foreground w-6 text-center">{idx + 1}</span>
-                    {item.team.crest ? (
-                      <img src={item.team.crest} alt={item.team.name} className="w-8 h-8 object-contain" />
-                    ) : (
-                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs">⚽</div>
-                    )}
-                    <div>
-                      <p className="font-bold text-sm text-foreground">{item.player.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.team.name}</p>
+              {statsTab === 'scorers' ? (
+                data?.scorers.map((item, idx) => (
+                  <div key={idx} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-bold text-muted-foreground w-6 text-center">{idx + 1}</span>
+                      {item.team.crest ? (
+                        <img src={item.team.crest} alt={item.team.name} className="w-8 h-8 object-contain" />
+                      ) : (
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs">⚽</div>
+                      )}
+                      <div>
+                        <p className="font-bold text-sm text-foreground">{item.player.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.team.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right pr-2">
+                      <span className="text-lg font-extrabold text-accent">{item.goals}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">goles</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-extrabold text-accent">{item.goals}</span>
-                    <span className="text-[10px] text-muted-foreground ml-1">goles</span>
+                ))
+              ) : (
+                data?.assists.map((item, idx) => (
+                  <div key={idx} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-bold text-muted-foreground w-6 text-center">{idx + 1}</span>
+                      {item.team.crest ? (
+                        <img src={item.team.crest} alt={item.team.name} className="w-8 h-8 object-contain" />
+                      ) : (
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs">⚽</div>
+                      )}
+                      <div>
+                        <p className="font-bold text-sm text-foreground">{item.player.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.team.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right pr-2">
+                      <span className="text-lg font-extrabold text-accent">{item.assists}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">asistencias</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </motion.div>
         )}
@@ -216,61 +283,88 @@ export default function FifePage() {
             initial="hidden"
             animate="show"
             exit="hidden"
-            className="max-w-3xl mx-auto space-y-4"
+            className="space-y-12"
           >
-            {data?.matches.map((match) => {
-              const isFinished = match.status === 'FINISHED';
+            {STAGE_ORDER.map((stage) => {
+              const stageMatches = groupedMatches[stage] || [];
+              if (stageMatches.length === 0) return null;
+
               return (
-                <motion.div
-                  variants={itemVariants}
-                  key={match.id}
-                  className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="text-center md:text-left flex-shrink-0">
-                    <p className="text-xs font-semibold text-accent">
-                      {format(new Date(match.utcDate), "d 'de' MMMM", { locale: es })}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {format(new Date(match.utcDate), "HH:mm 'HRS'", { locale: es })}
-                    </p>
+                <div key={stage} className="space-y-4">
+                  <div className="flex items-center gap-3 border-b border-muted/50 pb-2">
+                    <Star className="w-5 h-5 text-accent fill-current" />
+                    <h2 className="text-xl font-bold text-foreground">{STAGE_LABELS[stage]}</h2>
+                    <span className="text-xs text-muted-foreground">({stageMatches.length} partidos)</span>
                   </div>
 
-                  <div className="flex-1 flex items-center justify-center gap-4 md:gap-8 w-full">
-                    {/* Home Team */}
-                    <div className="flex-1 flex items-center justify-end gap-3 w-1/3">
-                      <span className="text-xs md:text-sm font-bold text-right truncate max-w-[120px] md:max-w-none">{match.homeTeam.name}</span>
-                      {match.homeTeam.crest ? (
-                        <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-8 h-8 object-contain flex-shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs flex-shrink-0">🛡️</div>
-                      )}
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {stageMatches.map((match) => {
+                      const isFinished = match.status === 'FINISHED';
+                      const matchDate = new Date(match.utcDate);
+                      
+                      // Format relative day
+                      let dayLabel = format(matchDate, "eee d/M", { locale: es });
+                      const hoursLabel = format(matchDate, "h:mm a", { locale: es });
+                      
+                      if (matchDate.getFullYear() === 2022) {
+                        // World Cup 2022 historical label
+                        dayLabel = format(matchDate, "d MMM, yyyy", { locale: es });
+                      }
 
-                    {/* Score / Status */}
-                    <div className="flex flex-col items-center justify-center px-4 py-2 bg-muted/20 rounded-2xl min-w-[80px]">
-                      {isFinished ? (
-                        <span className="text-base font-extrabold text-foreground tracking-widest">
-                          {match.score.fullTime.home} - {match.score.fullTime.away}
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-muted-foreground uppercase">VS</span>
-                      )}
-                      <span className="text-[8px] text-muted-foreground mt-1 tracking-wider uppercase font-semibold">
-                        {isFinished ? 'Finalizado' : 'Próximamente'}
-                      </span>
-                    </div>
+                      return (
+                        <motion.div
+                          variants={itemVariants}
+                          key={match.id}
+                          className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow relative overflow-hidden"
+                        >
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>{STAGE_LABELS[stage]}</span>
+                            <span className="font-semibold text-accent">{isFinished ? 'Fin' : 'Próximamente'}</span>
+                          </div>
 
-                    {/* Away Team */}
-                    <div className="flex-1 flex items-center justify-start gap-3 w-1/3">
-                      {match.awayTeam.crest ? (
-                        <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-8 h-8 object-contain flex-shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs flex-shrink-0">🛡️</div>
-                      )}
-                      <span className="text-xs md:text-sm font-bold text-left truncate max-w-[120px] md:max-w-none">{match.awayTeam.name}</span>
-                    </div>
+                          <div className="flex items-center justify-between gap-4 my-2">
+                            {/* Teams and scores */}
+                            <div className="flex flex-col gap-3 flex-1">
+                              {/* Home */}
+                              <div className="flex items-center gap-3">
+                                {match.homeTeam.crest ? (
+                                  <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-6 h-6 object-contain flex-shrink-0" />
+                                ) : (
+                                  <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
+                                )}
+                                <span className="text-sm font-bold truncate max-w-[150px]">{match.homeTeam.name}</span>
+                              </div>
+                              {/* Away */}
+                              <div className="flex items-center gap-3">
+                                {match.awayTeam.crest ? (
+                                  <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-6 h-6 object-contain flex-shrink-0" />
+                                ) : (
+                                  <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
+                                )}
+                                <span className="text-sm font-bold truncate max-w-[150px]">{match.awayTeam.name}</span>
+                              </div>
+                            </div>
+
+                            {/* Score Display (Right) */}
+                            <div className="flex items-center gap-6">
+                              {isFinished && (
+                                <div className="flex flex-col gap-3 font-extrabold text-base text-right min-w-[20px]">
+                                  <span>{match.score.fullTime.home}</span>
+                                  <span>{match.score.fullTime.away}</span>
+                                </div>
+                              )}
+                              
+                              <div className="border-l border-muted/50 pl-4 py-1 flex flex-col justify-center min-w-[70px] text-right">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase">{dayLabel}</p>
+                                <p className="text-xs font-semibold mt-0.5">{hoursLabel}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </motion.div>

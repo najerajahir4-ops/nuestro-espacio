@@ -46,7 +46,7 @@ function parseMarcaRSS(xmlText: string) {
       });
     }
   }
-  return items.slice(0, 10); // Return top 10 news items
+  return items.slice(0, 15); // Return top 15 news items (more options)
 }
 
 // Mock Scorers in case API key is missing or fails (World Cup Theme)
@@ -58,31 +58,129 @@ const mockScorers = [
   { player: { name: 'Richarlison' }, team: { name: 'Brasil', crest: 'https://crests.getfootballapi.com/crest/bra.png' }, goals: 3 }
 ];
 
-// Mock Matches in case API key is missing or fails (World Cup Theme)
+// Mock Assists (World Cup Theme)
+const mockAssists = [
+  { player: { name: 'Antoine Griezmann' }, team: { name: 'Francia', crest: 'https://crests.getfootballapi.com/crest/fra.png' }, assists: 3 },
+  { player: { name: 'Lionel Messi' }, team: { name: 'Argentina', crest: 'https://crests.getfootballapi.com/crest/arg.png' }, assists: 3 },
+  { player: { name: 'Harry Kane' }, team: { name: 'Inglaterra', crest: 'https://crests.getfootballapi.com/crest/eng.png' }, assists: 3 },
+  { player: { name: 'Bruno Fernandes' }, team: { name: 'Portugal', crest: 'https://crests.getfootballapi.com/crest/por.png' }, assists: 3 },
+  { player: { name: 'Ivan Perišić' }, team: { name: 'Croacia', crest: 'https://crests.getfootballapi.com/crest/cro.png' }, assists: 3 }
+];
+
+// Mock Matches structured by World Cup Stages
 const mockMatches = [
+  // FINAL
   {
     id: 1,
     utcDate: '2022-12-18T15:00:00Z',
     status: 'FINISHED',
+    stage: 'FINAL',
     homeTeam: { name: 'Argentina', crest: 'https://crests.getfootballapi.com/crest/arg.png' },
     awayTeam: { name: 'Francia', crest: 'https://crests.getfootballapi.com/crest/fra.png' },
-    score: { fullTime: { home: 3, away: 3 } } // Final score (went to pens)
+    score: { fullTime: { home: 3, away: 3 } }
   },
+  // TERCER LUGAR
   {
     id: 2,
     utcDate: '2022-12-17T15:00:00Z',
     status: 'FINISHED',
+    stage: 'THIRD_PLACE',
     homeTeam: { name: 'Croacia', crest: 'https://crests.getfootballapi.com/crest/cro.png' },
     awayTeam: { name: 'Marruecos', crest: 'https://crests.getfootballapi.com/crest/mar.png' },
     score: { fullTime: { home: 2, away: 1 } }
   },
+  // SEMIFINALES
   {
     id: 3,
     utcDate: '2022-12-14T19:00:00Z',
     status: 'FINISHED',
+    stage: 'SEMI_FINALS',
     homeTeam: { name: 'Francia', crest: 'https://crests.getfootballapi.com/crest/fra.png' },
     awayTeam: { name: 'Marruecos', crest: 'https://crests.getfootballapi.com/crest/mar.png' },
     score: { fullTime: { home: 2, away: 0 } }
+  },
+  {
+    id: 4,
+    utcDate: '2022-12-13T19:00:00Z',
+    status: 'FINISHED',
+    stage: 'SEMI_FINALS',
+    homeTeam: { name: 'Argentina', crest: 'https://crests.getfootballapi.com/crest/arg.png' },
+    awayTeam: { name: 'Croacia', crest: 'https://crests.getfootballapi.com/crest/cro.png' },
+    score: { fullTime: { home: 3, away: 0 } }
+  },
+  // CUARTOS DE FINAL
+  {
+    id: 5,
+    utcDate: '2022-12-10T19:00:00Z',
+    status: 'FINISHED',
+    stage: 'QUARTER_FINALS',
+    homeTeam: { name: 'Inglaterra', crest: 'https://crests.getfootballapi.com/crest/eng.png' },
+    awayTeam: { name: 'Francia', crest: 'https://crests.getfootballapi.com/crest/fra.png' },
+    score: { fullTime: { home: 1, away: 2 } }
+  },
+  {
+    id: 6,
+    utcDate: '2022-12-10T15:00:00Z',
+    status: 'FINISHED',
+    stage: 'QUARTER_FINALS',
+    homeTeam: { name: 'Marruecos', crest: 'https://crests.getfootballapi.com/crest/mar.png' },
+    awayTeam: { name: 'Portugal', crest: 'https://crests.getfootballapi.com/crest/por.png' },
+    score: { fullTime: { home: 1, away: 0 } }
+  },
+  {
+    id: 7,
+    utcDate: '2022-12-09T19:00:00Z',
+    status: 'FINISHED',
+    stage: 'QUARTER_FINALS',
+    homeTeam: { name: 'Países Bajos', crest: 'https://crests.getfootballapi.com/crest/ned.png' },
+    awayTeam: { name: 'Argentina', crest: 'https://crests.getfootballapi.com/crest/arg.png' },
+    score: { fullTime: { home: 2, away: 2 } }
+  },
+  {
+    id: 8,
+    utcDate: '2022-12-09T15:00:00Z',
+    status: 'FINISHED',
+    stage: 'QUARTER_FINALS',
+    homeTeam: { name: 'Croacia', crest: 'https://crests.getfootballapi.com/crest/cro.png' },
+    awayTeam: { name: 'Brasil', crest: 'https://crests.getfootballapi.com/crest/bra.png' },
+    score: { fullTime: { home: 1, away: 1 } }
+  },
+  // OCTAVOS DE FINAL
+  {
+    id: 9,
+    utcDate: '2022-12-06T19:00:00Z',
+    status: 'FINISHED',
+    stage: 'LAST_16',
+    homeTeam: { name: 'Portugal', crest: 'https://crests.getfootballapi.com/crest/por.png' },
+    awayTeam: { name: 'Suiza', crest: 'https://crests.getfootballapi.com/crest/sui.png' },
+    score: { fullTime: { home: 6, away: 1 } }
+  },
+  {
+    id: 10,
+    utcDate: '2022-12-06T15:00:00Z',
+    status: 'FINISHED',
+    stage: 'LAST_16',
+    homeTeam: { name: 'Marruecos', crest: 'https://crests.getfootballapi.com/crest/mar.png' },
+    awayTeam: { name: 'España', crest: 'https://crests.getfootballapi.com/crest/esp.png' },
+    score: { fullTime: { home: 0, away: 0 } }
+  },
+  {
+    id: 11,
+    utcDate: '2022-12-05T19:00:00Z',
+    status: 'FINISHED',
+    stage: 'LAST_16',
+    homeTeam: { name: 'Brasil', crest: 'https://crests.getfootballapi.com/crest/bra.png' },
+    awayTeam: { name: 'Corea del Sur', crest: 'https://crests.getfootballapi.com/crest/kor.png' },
+    score: { fullTime: { home: 4, away: 1 } }
+  },
+  {
+    id: 12,
+    utcDate: '2022-12-05T15:00:00Z',
+    status: 'FINISHED',
+    stage: 'LAST_16',
+    homeTeam: { name: 'Japón', crest: 'https://crests.getfootballapi.com/crest/jpn.png' },
+    awayTeam: { name: 'Croacia', crest: 'https://crests.getfootballapi.com/crest/cro.png' },
+    score: { fullTime: { home: 1, away: 1 } }
   }
 ];
 
@@ -104,7 +202,8 @@ export async function GET() {
       newsData = JSON.parse(newsCache.value);
     } else {
       try {
-        const rssRes = await fetch('https://e00-marca.uecdn.es/rss/futbol/primera-division.xml', { next: { revalidate: 3600 } });
+        // Fetch from Fútbol Internacional feed (famous players and global football)
+        const rssRes = await fetch('https://e00-marca.uecdn.es/rss/futbol/futbol-internacional.xml', { next: { revalidate: 3600 } });
         if (rssRes.ok) {
           const xml = await rssRes.text();
           newsData = parseMarcaRSS(xml);
@@ -135,14 +234,13 @@ export async function GET() {
     if (isScorersValid && isMatchesValid) {
       scorersData = JSON.parse(scorersCache!.value);
       matchesData = JSON.parse(matchesCache!.value);
-      usingMockData = scorersCache!.value.includes('mock') || !apiKey; // Flag if cached was mock
+      usingMockData = scorersCache!.value.includes('mock') || !apiKey;
     } else if (apiKey) {
-      // Fetch fresh data from API
       try {
         const headers = { 'X-Auth-Token': apiKey };
         
         // Fetch scorers
-        const scorersRes = await fetch('https://api.football-data.org/v4/competitions/WC/scorers?limit=10', { headers, next: { revalidate: 3600 } });
+        const scorersRes = await fetch('https://api.football-data.org/v4/competitions/WC/scorers?limit=15', { headers, next: { revalidate: 3600 } });
         if (scorersRes.ok) {
           const resJson = await scorersRes.json();
           scorersData = resJson.scorers || mockScorers;
@@ -153,11 +251,11 @@ export async function GET() {
           });
         }
 
-        // Fetch matches (limit to World Cup matches)
+        // Fetch matches
         const matchesRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', { headers, next: { revalidate: 3600 } });
         if (matchesRes.ok) {
           const resJson = await matchesRes.json();
-          matchesData = resJson.matches ? resJson.matches.slice(0, 15) : mockMatches;
+          matchesData = resJson.matches ? resJson.matches : mockMatches;
           await prisma.fifeCache.upsert({
             where: { key: 'matches' },
             update: { value: JSON.stringify(matchesData) },
@@ -171,7 +269,6 @@ export async function GET() {
         if (matchesCache) matchesData = JSON.parse(matchesCache.value);
       }
     } else {
-      // No API Key, write mock to DB to establish cache
       await prisma.fifeCache.upsert({
         where: { key: 'scorers' },
         update: { value: JSON.stringify(mockScorers) },
@@ -185,10 +282,29 @@ export async function GET() {
       usingMockData = true;
     }
 
+    // 3. Process assists data
+    let assistsData = mockAssists;
+    if (apiKey && scorersData && scorersData.length > 0) {
+      // Extract assists from API response if they exist
+      const parsedAssists = scorersData
+        .map((s: any) => ({
+          player: s.player,
+          team: s.team,
+          assists: s.assists || 0
+        }))
+        .filter((s: any) => s.assists > 0)
+        .sort((a: any, b: any) => b.assists - a.assists);
+
+      if (parsedAssists.length > 0) {
+        assistsData = parsedAssists.slice(0, 10);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       news: newsData,
-      scorers: scorersData,
+      scorers: scorersData.slice(0, 10),
+      assists: assistsData.slice(0, 10),
       matches: matchesData,
       usingMockData
     });
