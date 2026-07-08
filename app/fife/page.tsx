@@ -37,6 +37,7 @@ interface MatchItem {
 }
 
 const STAGE_LABELS: Record<string, string> = {
+  'LAST_32': 'Dieciseisavos de final',
   'LAST_16': 'Octavos de final',
   'QUARTER_FINALS': 'Cuartos de final',
   'SEMI_FINALS': 'Semifinales',
@@ -44,7 +45,7 @@ const STAGE_LABELS: Record<string, string> = {
   'FINAL': 'Final'
 };
 
-const STAGE_ORDER = ['LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
+const STAGE_ORDER = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
 
 export default function FifePage() {
   const [activeTab, setActiveTab] = useState<'news' | 'stats' | 'matches'>('news');
@@ -327,21 +328,21 @@ export default function FifePage() {
                             <div className="flex flex-col gap-3 flex-1">
                               {/* Home */}
                               <div className="flex items-center gap-3">
-                                {match.homeTeam.crest ? (
-                                  <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-6 h-6 object-contain flex-shrink-0" />
+                                {match.homeTeam?.crest ? (
+                                  <img src={match.homeTeam.crest} alt={match.homeTeam.name || 'Equipo'} className="w-6 h-6 object-contain flex-shrink-0" />
                                 ) : (
                                   <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
                                 )}
-                                <span className="text-sm font-bold truncate max-w-[150px]">{match.homeTeam.name}</span>
+                                <span className="text-sm font-bold truncate max-w-[150px]">{match.homeTeam?.name || 'A definir'}</span>
                               </div>
                               {/* Away */}
                               <div className="flex items-center gap-3">
-                                {match.awayTeam.crest ? (
-                                  <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-6 h-6 object-contain flex-shrink-0" />
+                                {match.awayTeam?.crest ? (
+                                  <img src={match.awayTeam.crest} alt={match.awayTeam.name || 'Equipo'} className="w-6 h-6 object-contain flex-shrink-0" />
                                 ) : (
                                   <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
                                 )}
-                                <span className="text-sm font-bold truncate max-w-[150px]">{match.awayTeam.name}</span>
+                                <span className="text-sm font-bold truncate max-w-[150px]">{match.awayTeam?.name || 'A definir'}</span>
                               </div>
                             </div>
 
