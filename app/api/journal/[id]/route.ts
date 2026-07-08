@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
-export async function DELETE(request: Request, context: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
     if (!session) {
@@ -36,7 +36,7 @@ export async function DELETE(request: Request, context: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, context: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession();
     if (!session) {
