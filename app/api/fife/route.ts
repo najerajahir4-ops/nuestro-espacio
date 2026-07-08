@@ -196,7 +196,7 @@ export async function GET() {
 
     // 1. Fetch News (RSS) - We cache this in DB too
     let newsData: any[] = [];
-    const newsCache = await prisma.fifeCache.findUnique({ where: { key: 'news' } });
+    const newsCache = await prisma.fifeCache.findUnique({ where: { key: 'news_v2' } });
     
     if (newsCache && (now.getTime() - new Date(newsCache.updatedAt).getTime() < cacheExpiryTime)) {
       newsData = JSON.parse(newsCache.value);
@@ -208,9 +208,9 @@ export async function GET() {
           const xml = await rssRes.text();
           newsData = parseMarcaRSS(xml);
           await prisma.fifeCache.upsert({
-            where: { key: 'news' },
+            where: { key: 'news_v2' },
             update: { value: JSON.stringify(newsData) },
-            create: { key: 'news', value: JSON.stringify(newsData) }
+            create: { key: 'news_v2', value: JSON.stringify(newsData) }
           });
         }
       } catch (err) {
@@ -225,8 +225,8 @@ export async function GET() {
     let matchesData = mockMatches;
     let usingMockData = !apiKey;
 
-    const scorersCache = await prisma.fifeCache.findUnique({ where: { key: 'scorers' } });
-    const matchesCache = await prisma.fifeCache.findUnique({ where: { key: 'matches' } });
+    const scorersCache = await prisma.fifeCache.findUnique({ where: { key: 'scorers_v2' } });
+    const matchesCache = await prisma.fifeCache.findUnique({ where: { key: 'matches_v2' } });
 
     const isScorersValid = scorersCache && (now.getTime() - new Date(scorersCache.updatedAt).getTime() < cacheExpiryTime);
     const isMatchesValid = matchesCache && (now.getTime() - new Date(matchesCache.updatedAt).getTime() < cacheExpiryTime);
@@ -245,9 +245,9 @@ export async function GET() {
           const resJson = await scorersRes.json();
           scorersData = resJson.scorers || mockScorers;
           await prisma.fifeCache.upsert({
-            where: { key: 'scorers' },
+            where: { key: 'scorers_v2' },
             update: { value: JSON.stringify(scorersData) },
-            create: { key: 'scorers', value: JSON.stringify(scorersData) }
+            create: { key: 'scorers_v2', value: JSON.stringify(scorersData) }
           });
         }
 
@@ -257,9 +257,9 @@ export async function GET() {
           const resJson = await matchesRes.json();
           matchesData = resJson.matches ? resJson.matches : mockMatches;
           await prisma.fifeCache.upsert({
-            where: { key: 'matches' },
+            where: { key: 'matches_v2' },
             update: { value: JSON.stringify(matchesData) },
-            create: { key: 'matches', value: JSON.stringify(matchesData) }
+            create: { key: 'matches_v2', value: JSON.stringify(matchesData) }
           });
         }
         usingMockData = false;
@@ -270,14 +270,14 @@ export async function GET() {
       }
     } else {
       await prisma.fifeCache.upsert({
-        where: { key: 'scorers' },
+        where: { key: 'scorers_v2' },
         update: { value: JSON.stringify(mockScorers) },
-        create: { key: 'scorers', value: JSON.stringify(mockScorers) }
+        create: { key: 'scorers_v2', value: JSON.stringify(mockScorers) }
       });
       await prisma.fifeCache.upsert({
-        where: { key: 'matches' },
+        where: { key: 'matches_v2' },
         update: { value: JSON.stringify(mockMatches) },
-        create: { key: 'matches', value: JSON.stringify(mockMatches) }
+        create: { key: 'matches_v2', value: JSON.stringify(mockMatches) }
       });
       usingMockData = true;
     }
