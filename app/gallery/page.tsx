@@ -339,7 +339,7 @@ export default function GalleryPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {/* "Create Album" Button Card */}
               <motion.div
-                whileHover={{ y: -4, shadow: 'lg' }}
+                whileHover={{ y: -4 }}
                 onClick={() => setShowCreateAlbumModal(true)}
                 className="border-2 border-dashed border-muted-foreground/30 hover:border-accent/50 rounded-[2rem] h-52 flex flex-col items-center justify-center cursor-pointer hover:bg-accent/5 transition-all group"
               >
