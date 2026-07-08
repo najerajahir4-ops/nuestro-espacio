@@ -120,7 +120,7 @@ export default function SettingsPage() {
                     key={c.value}
                     onClick={() => handleUpdateColor(c.value)}
                     className={`w-12 h-12 rounded-full transition-transform ${accentColor === c.value ? 'ring-4 ring-offset-2 ring-background scale-110' : 'hover:scale-105'}`}
-                    style={{ backgroundColor: c.value, ringColor: c.value }}
+                    style={{ backgroundColor: c.value }}
                     title={c.name}
                   />
                 ))}
