@@ -187,7 +187,7 @@ const mockMatches = [
 export async function GET() {
   try {
     const session = await getSession();
-    if (!session) {
+    if (!session && process.env.NODE_ENV !== 'development') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
