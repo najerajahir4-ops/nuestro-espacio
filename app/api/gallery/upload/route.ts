@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File;
     const description = formData.get('description') as string;
     const dateStr = formData.get('date') as string;
+    const albumId = formData.get('albumId') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No se recibió ningún archivo' }, { status: 400 });
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
         description,
         date: dateStr ? new Date(dateStr) : new Date(),
         userId: session.userId,
+        albumId: albumId || null
       }
     });
 
