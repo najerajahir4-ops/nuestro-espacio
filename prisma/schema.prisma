@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(cuid())
+  name           String
+  username       String         @unique
+  passwordHash   String
+  colorTheme     String?        // e.g., 'rose', 'blue'
+  profilePic     String?
+  lastSeen       DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  media          Media[]
+  journalEntries JournalEntry[]
+  messages       Message[]
+}
+
+model Media {
+  id          String   @id @default(cuid())
+  url         String
+  type        String   @default("image") // "image" or "video"
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  content   String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AppConfig {
+  id        String   @id @default("singleton")
+  startDate DateTime // The date the relationship started
+  updatedAt DateTime @updatedAt
+}

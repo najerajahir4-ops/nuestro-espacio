@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-primary);
+}
+
+:root {
+  --background: #fdfaf6;
+  --foreground: #4a4a4a;
+  --accent: #ff8fa3; /* Default pinkish color */
+  --accent-foreground: #ffffff;
+  --card: #ffffff;
+  --muted: #f0ebe1;
+}
+
+[data-theme='dark'] {
+  --background: #1a1a1a;
+  --foreground: #e5e5e5;
+  --accent: #ffb3c1;
+  --accent-foreground: #1a1a1a;
+  --card: #262626;
+  --muted: #333333;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-primary), sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar to make it premium */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--muted);
+  border-radius: 10px;
+}
