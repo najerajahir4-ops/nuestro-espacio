@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   const router = useRouter();
   const { setUser, setAccentColor } = useAppStore();
@@ -24,7 +25,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, rememberMe }),
       });
 
       const data = await res.json();
@@ -90,6 +91,19 @@ export default function LoginPage() {
               className="w-full px-4 py-3 rounded-2xl bg-card border border-muted/50 focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all placeholder:text-muted-foreground/50"
               required
             />
+          </div>
+
+          <div className="flex items-center space-x-2 ml-1">
+            <input
+              type="checkbox"
+              id="remember"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded text-accent focus:ring-accent border-muted/50 accent-accent"
+            />
+            <label htmlFor="remember" className="text-sm font-medium text-muted-foreground cursor-pointer">
+              Recordar inicio de sesión
+            </label>
           </div>
 
           <AnimatePresence>

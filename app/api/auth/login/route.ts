@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json();
+    const { username, password, rememberMe = true } = await request.json();
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Faltan credenciales' }, { status: 400 });
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined, // 30 days if checked, else session cookie
       path: '/',
     });
 
