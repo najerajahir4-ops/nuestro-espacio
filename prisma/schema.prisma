@@ -66,3 +66,9 @@ model AppConfig {
   startDate DateTime // The date the relationship started
   updatedAt DateTime @updatedAt
 }
+
+model FifeCache {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}

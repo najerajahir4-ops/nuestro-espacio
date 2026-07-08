@@ -2,13 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Image as ImageIcon, Book, Settings } from 'lucide-react';
+import { Home, Image as ImageIcon, Book, Settings, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { path: '/', label: 'Inicio', icon: Home },
   { path: '/gallery', label: 'Galería', icon: ImageIcon },
   { path: '/journal', label: 'Diario', icon: Book },
+  { path: '/fife', label: 'Fife', icon: Trophy },
   { path: '/settings', label: 'Ajustes', icon: Settings },
 ];
 
