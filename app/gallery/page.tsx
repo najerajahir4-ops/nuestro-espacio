@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Plus, X, Upload } from 'lucide-react';
+import { Loader2, Plus, X, Upload, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -253,12 +254,30 @@ export default function GalleryPage() {
                 </p>
               </div>
 
-              <button 
-                onClick={() => setSelectedMedia(null)}
-                className="absolute top-0 right-0 md:-top-12 md:-right-12 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 backdrop-blur-md transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="absolute top-0 right-0 md:-top-12 md:-right-12 flex gap-2">
+                {selectedMedia.user.name === useAppStore.getState().user?.name && (
+                  <button 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm('¿Estás seguro de eliminar este recuerdo?')) return;
+                      const res = await fetch(`/api/gallery/${selectedMedia.id}`, { method: 'DELETE' });
+                      if (res.ok) {
+                        setSelectedMedia(null);
+                        fetchMedia();
+                      }
+                    }}
+                    className="p-3 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-md transition-colors"
+                  >
+                    <Trash2 className="w-6 h-6" />
+                  </button>
+                )}
+                <button 
+                  onClick={() => setSelectedMedia(null)}
+                  className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 backdrop-blur-md transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
