@@ -83,7 +83,7 @@ export default function SettingsPage() {
                         body: formData
                       });
                       const data = await res.json();
-                      if (data.url) {
+                      if (data.url && user) {
                         setUser({ ...user, profilePic: data.url });
                       }
                     } catch(err) {
