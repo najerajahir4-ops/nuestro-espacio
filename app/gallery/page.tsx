@@ -623,28 +623,14 @@ export default function GalleryPage() {
         on={{
           view: ({ index }) => setLightboxIndex(index),
         }}
-        render={{
-          iconClose: () => <X className="w-6 h-6" />,
-          slideFooter: () => {
-            const item = slides[lightboxIndex]?.itemData as MediaItem;
-            if (!item) return null;
-            return (
-              <div className="w-full text-center px-4 pb-6 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent">
-                {item.description && (
-                  <p className="text-white text-lg font-medium mb-1">{item.description}</p>
-                )}
-                <p className="text-white/70 text-sm">
-                  Subido por {item.user.name} el {format(new Date(item.date), "d 'de' MMMM, yyyy", { locale: es })}
-                </p>
-              </div>
-            );
-          },
-          toolbar: ({ children }) => {
-            const item = slides[lightboxIndex]?.itemData as MediaItem;
-            return (
-              <>
-                {item?.user.name === user?.name && (
+        toolbar={{
+          buttons: [
+            (() => {
+              const item = slides[lightboxIndex]?.itemData as MediaItem;
+              if (item?.user.name === user?.name) {
+                return (
                   <button 
+                    key="delete"
                     type="button"
                     title="Eliminar"
                     className="yarl__button"
@@ -662,11 +648,29 @@ export default function GalleryPage() {
                   >
                     <Trash2 className="w-5 h-5 text-red-500 hover:text-red-400" />
                   </button>
+                );
+              }
+              return null;
+            })(),
+            "close"
+          ]
+        }}
+        render={{
+          iconClose: () => <X className="w-6 h-6" />,
+          slideFooter: () => {
+            const item = slides[lightboxIndex]?.itemData as MediaItem;
+            if (!item) return null;
+            return (
+              <div className="w-full text-center px-4 pb-6 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent">
+                {item.description && (
+                  <p className="text-white text-lg font-medium mb-1">{item.description}</p>
                 )}
-                {children}
-              </>
+                <p className="text-white/70 text-sm">
+                  Subido por {item.user.name} el {format(new Date(item.date), "d 'de' MMMM, yyyy", { locale: es })}
+                </p>
+              </div>
             );
-          },
+          }
         }}
       />
 
