@@ -409,7 +409,7 @@ export default function GalleryPage() {
             </div>
           ) : (
             /* --- Photos Grid (All / Inside Album) --- */
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 md:gap-2">
               {media.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                   <div className="w-20 h-20 bg-muted/40 rounded-full flex items-center justify-center mb-6">
@@ -421,40 +421,41 @@ export default function GalleryPage() {
               ) : (
                 media.map((item, index) => (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.04 }}
+                    transition={{ delay: (index % 15) * 0.03 }}
                     key={item.id}
-                    className="break-inside-avoid relative group cursor-pointer"
+                    className="relative group cursor-pointer aspect-square bg-muted/20 overflow-hidden"
                     onClick={() => {
                       setLightboxIndex(index);
                       setLightboxOpen(true);
                     }}
                   >
                     {item.type === 'video' ? (
-                      <div className="relative">
+                      <div className="relative w-full h-full">
                         <img 
                           src={item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg')} 
                           alt={item.description || 'Video'} 
-                          className="w-full rounded-[2rem] object-cover shadow-sm bg-muted/30" 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <PlayCircle className="w-10 h-10 text-white drop-shadow-md" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                          <PlayCircle className="w-8 h-8 text-white drop-shadow-md" />
                         </div>
                       </div>
                     ) : (
                       <img 
                         src={item.url} 
                         alt={item.description || 'Recuerdo'} 
-                        className="w-full rounded-[2rem] object-cover shadow-sm bg-muted/30" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                         loading="lazy"
                       />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[2rem] flex flex-col justify-end p-6">
-                      {item.description && <p className="text-white font-medium mb-1 line-clamp-2">{item.description}</p>}
-                      <p className="text-white/80 text-xs">
-                        {format(new Date(item.date), "d MMM yyyy", { locale: es })} • {item.user.name}
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 pointer-events-none">
+                      {item.description && <p className="text-white font-medium text-xs mb-0.5 line-clamp-1">{item.description}</p>}
+                      <p className="text-white/80 text-[10px]">
+                        {format(new Date(item.date), "d MMM yyyy", { locale: es })}
                       </p>
                     </div>
                   </motion.div>
