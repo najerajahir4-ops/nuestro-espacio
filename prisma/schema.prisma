@@ -47,7 +47,9 @@ model Media {
 
 model JournalEntry {
   id        String   @id @default(cuid())
-  content   String
+  content   String?
+  type      String   @default("text") // "text" or "image"
+  mediaUrl  String?
   date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,11 +60,19 @@ model JournalEntry {
 
 model Message {
   id        String   @id @default(cuid())
-  content   String
+  content   String?
+  type      String   @default("text") // "text" or "image"
+  mediaUrl  String?
   createdAt DateTime @default(now())
   
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model TypingStatus {
+  userId    String   @id
+  isTyping  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
 }
 
 model AppConfig {
