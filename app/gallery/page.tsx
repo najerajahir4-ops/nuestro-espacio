@@ -3,9 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Plus, X, Upload, Trash2, Folder, Calendar, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Plus, X, Upload, Trash2, Folder, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Video from "yet-another-react-lightbox/plugins/video";
+import "yet-another-react-lightbox/styles.css";
+import "yet-another-react-lightbox/plugins/zoom.css";
 
 interface MediaItem {
   id: string;
@@ -33,7 +39,8 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Tab & Album Navigation State
   const [activeTab, setActiveTab] = useState<'all' | 'albums'>('all');
@@ -191,6 +198,29 @@ export default function GalleryPage() {
       console.error(err);
     }
   };
+
+  const slides = media.map((item) => {
+    if (item.type === 'video') {
+      const poster = item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg');
+      return {
+        type: 'video' as const,
+        width: 1280,
+        height: 720,
+        poster,
+        sources: [
+          {
+            src: item.url,
+            type: "video/mp4"
+          }
+        ],
+        itemData: item
+      };
+    }
+    return {
+      src: item.url,
+      itemData: item
+    };
+  });
 
   return (
     <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-6xl mx-auto pb-24 md:pb-12">
@@ -397,22 +427,23 @@ export default function GalleryPage() {
                     transition={{ delay: index * 0.04 }}
                     key={item.id}
                     className="break-inside-avoid relative group cursor-pointer"
-                    onClick={() => setSelectedMedia(item)}
+                    onClick={() => {
+                      setLightboxIndex(index);
+                      setLightboxOpen(true);
+                    }}
                   >
                     {item.type === 'video' ? (
-                      <video 
-                        src={item.url} 
-                        className="w-full rounded-[2rem] object-cover shadow-sm bg-muted/30"
-                        muted
-                        loop
-                        playsInline
-                        onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
-                        onMouseOut={(e) => {
-                          const v = e.target as HTMLVideoElement;
-                          v.pause();
-                          v.currentTime = 0;
-                        }}
-                      />
+                      <div className="relative">
+                        <img 
+                          src={item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg')} 
+                          alt={item.description || 'Video'} 
+                          className="w-full rounded-[2rem] object-cover shadow-sm bg-muted/30" 
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <PlayCircle className="w-10 h-10 text-white drop-shadow-md" />
+                        </div>
+                      </div>
                     ) : (
                       <img 
                         src={item.url} 
@@ -578,77 +609,67 @@ export default function GalleryPage() {
         )}
       </AnimatePresence>
 
-      {/* View Media Modal */}
-      <AnimatePresence>
-        {selectedMedia && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedMedia(null)}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-12 cursor-zoom-out"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {selectedMedia.type === 'video' ? (
-                <video 
-                  src={selectedMedia.url} 
-                  controls
-                  autoPlay
-                  className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl animate-fade-in"
-                />
-              ) : (
-                <img 
-                  src={selectedMedia.url} 
-                  alt={selectedMedia.description}
-                  className="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl animate-fade-in"
-                />
-              )}
-              
-              <div className="w-full max-w-3xl mt-6 text-center">
-                {selectedMedia.description && (
-                  <p className="text-white text-lg font-medium mb-2">{selectedMedia.description}</p>
+      {/* View Media Modal (Lightbox) */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        index={lightboxIndex}
+        slides={slides}
+        plugins={[Zoom, Video]}
+        zoom={{
+          maxZoomPixelRatio: 4,
+          scrollToZoom: true,
+          doubleTapDelay: 300,
+        }}
+        on={{
+          view: ({ index }) => setLightboxIndex(index),
+        }}
+        render={{
+          iconClose: () => <X className="w-6 h-6" />,
+          slideFooter: () => {
+            const item = slides[lightboxIndex]?.itemData as MediaItem;
+            if (!item) return null;
+            return (
+              <div className="w-full text-center px-4 pb-6 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent">
+                {item.description && (
+                  <p className="text-white text-lg font-medium mb-1">{item.description}</p>
                 )}
-                <p className="text-white/60 text-sm">
-                  Subido por {selectedMedia.user.name} el {format(new Date(selectedMedia.date), "d 'de' MMMM, yyyy", { locale: es })}
+                <p className="text-white/70 text-sm">
+                  Subido por {item.user.name} el {format(new Date(item.date), "d 'de' MMMM, yyyy", { locale: es })}
                 </p>
               </div>
-
-              <div className="absolute top-0 right-0 md:-top-12 md:-right-12 flex gap-2">
-                {selectedMedia.user.name === user?.name && (
+            );
+          },
+          toolbar: ({ children }) => {
+            const item = slides[lightboxIndex]?.itemData as MediaItem;
+            return (
+              <>
+                {item?.user.name === user?.name && (
                   <button 
+                    type="button"
+                    title="Eliminar"
+                    className="yarl__button"
+                    style={{ padding: '8px' }}
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (!confirm('¿Estás seguro de eliminar este recuerdo?')) return;
-                      const res = await fetch(`/api/gallery/${selectedMedia.id}`, { method: 'DELETE' });
+                      const res = await fetch(`/api/gallery/${item.id}`, { method: 'DELETE' });
                       if (res.ok) {
-                        setSelectedMedia(null);
+                        setLightboxOpen(false);
                         fetchMedia();
                         if (activeTab === 'albums') fetchAlbums();
                       }
                     }}
-                    className="p-3 bg-red-500/80 hover:bg-red-500 rounded-full text-white backdrop-blur-md transition-colors"
                   >
-                    <Trash2 className="w-6 h-6" />
+                    <Trash2 className="w-5 h-5 text-red-500 hover:text-red-400" />
                   </button>
                 )}
-                <button 
-                  onClick={() => setSelectedMedia(null)}
-                  className="p-3 bg-white/10 rounded-full text-white hover:bg-white/20 backdrop-blur-md transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {children}
+              </>
+            );
+          },
+        }}
+      />
 
     </div>
   );

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Solo permite tráfico HTTPS hacia el dominio de producción -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">nuestro-espacio-tau.vercel.app</domain>
+        <domain includeSubdomains="true">vercel.app</domain>
+    </domain-config>
+
+    <!-- Cloudinary (para cargar imágenes desde la app) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">res.cloudinary.com</domain>
+    </domain-config>
+
+    <!-- Política base: bloquear todo cleartext -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nuestro Espacio</string>
+    <string name="title_activity_main">Nuestro Espacio</string>
+    <string name="package_name">com.najera.nuestroespacio</string>
+    <string name="custom_url_scheme">com.najera.nuestroespacio</string>
+</resources>
