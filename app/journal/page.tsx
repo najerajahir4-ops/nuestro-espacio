@@ -100,11 +100,12 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-4xl mx-auto pb-32 md:pb-12 flex flex-col h-screen">
-      <header className="mb-6 flex-shrink-0">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Nuestro Diario</h1>
-        <p className="text-muted-foreground">Escribe lo que sientes, será guardado para siempre.</p>
-      </header>
+    <div className="fixed inset-0 md:pl-64 bg-background z-10">
+      <div className="w-full max-w-4xl mx-auto h-full flex flex-col p-6 md:p-12 pb-24 md:pb-12">
+        <header className="mb-6 flex-shrink-0">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Nuestro Diario</h1>
+          <p className="text-muted-foreground">Escribe lo que sientes, será guardado para siempre.</p>
+        </header>
 
       {/* Message List */}
       <div className="flex-1 overflow-y-auto pr-2 space-y-6 flex flex-col-reverse relative scroll-smooth">
@@ -223,6 +224,7 @@ export default function JournalPage() {
             {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
           </motion.button>
         </form>
+      </div>
       </div>
     </div>
   );
