@@ -88,6 +88,7 @@ export default function Home() {
                 </div>
               )}
             </div>
+            <Image src="/images/3.png" alt="Happy Kuromi" width={80} height={80} className="w-20 h-20 animate-bounce drop-shadow-md hidden sm:block" />
           </header>
 
           <section className="mb-12">

@@ -4,22 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export type Mood = 'idle' | 'happy' | 'sleepy' | 'thinking' | 'typing' | 'relaxed' | 'online' | 'shy';
 
-// MAPA DE IMÁGENES
-// IMPORTANTE: Por favor, cambia el nombre del archivo en 'src' para que 
-// corresponda a la imagen correcta de Cinnamoroll.
-const MOOD_IMAGES: Record<Mood, { src: string, blend: boolean }> = {
-  idle: { src: '/images/cinna1.jpg', blend: true }, // pose parada simple
-  happy: { src: '/images/cinna2.jpg', blend: true }, // pose con la florecita
-  sleepy: { src: '/images/cinna3.jpg', blend: true }, // acostada abrazando al gatito
-  thinking: { src: '/images/cinna4.jpg', blend: true }, // enroscada mordiéndose la cola
-  typing: { src: '/images/cinna5.jpg', blend: true }, // rostro gato ojos grandes
-  relaxed: { src: '/images/cinna6.jpg', blend: true }, // lentes recostada
-  online: { src: '/images/4.png', blend: false }, // Kuromi lazo celeste (blend en false)
-  shy: { src: '/images/cinna8.jpg', blend: true }, // rostro boceto simple
+const MOOD_IMAGES: Record<Mood, string> = {
+  idle: '/moods/idle_pose.png',
+  happy: '/moods/flower_head.png',
+  sleepy: '/moods/sleeping_hug.png',
+  thinking: '/moods/curled_tail.png',
+  typing: '/moods/cat_face.png',
+  relaxed: '/moods/glasses_lying.png',
+  online: '/moods/bow_baby.png',
+  shy: '/moods/sketch_face.png',
 };
 
 export function MascotMood({ mood, className = "w-24 h-24" }: { mood: Mood; className?: string }) {
-  const config = MOOD_IMAGES[mood] || MOOD_IMAGES.idle;
+  const src = MOOD_IMAGES[mood] || MOOD_IMAGES.idle;
   
   return (
     <AnimatePresence mode="wait">
@@ -32,11 +29,11 @@ export function MascotMood({ mood, className = "w-24 h-24" }: { mood: Mood; clas
         className={`relative ${className}`}
       >
         <Image 
-          src={config.src} 
+          src={src} 
           alt={`Mascot feeling ${mood}`} 
           fill 
           unoptimized
-          className={`object-contain drop-shadow-sm ${config.blend ? 'mix-blend-multiply dark:mix-blend-screen' : ''}`} 
+          className="object-contain drop-shadow-sm" 
         />
       </motion.div>
     </AnimatePresence>
