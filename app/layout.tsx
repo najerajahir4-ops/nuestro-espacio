@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 
+import { AudioProvider } from "@/components/AudioProvider";
+
 const inter = Inter({ subsets: ["latin"], variable: '--font-primary' });
 
 export const metadata: Metadata = {
@@ -20,9 +22,11 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased min-h-screen pb-16 md:pb-0`}>
         <ThemeProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
+          <AudioProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </AudioProvider>
         </ThemeProvider>
       </body>
     </html>
