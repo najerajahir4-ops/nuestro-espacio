@@ -20,6 +20,7 @@ model User {
   passwordHash   String
   colorTheme     String?        // e.g., 'rose', 'blue'
   profilePic     String?
+  bio            String?
   lastSeen       DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt

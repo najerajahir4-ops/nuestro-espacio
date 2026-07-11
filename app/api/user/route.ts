@@ -11,13 +11,14 @@ export async function PUT(request: Request) {
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
-    const { colorTheme, name } = await request.json();
+    const { colorTheme, name, bio } = await request.json();
 
     const user = await prisma.user.update({
       where: { id: session.userId },
       data: {
         colorTheme: colorTheme !== undefined ? colorTheme : undefined,
         name: name !== undefined ? name : undefined,
+        bio: bio !== undefined ? bio : undefined,
       }
     });
 
@@ -27,7 +28,8 @@ export async function PUT(request: Request) {
       username: user.username, 
       name: user.name, 
       colorTheme: user.colorTheme, 
-      profilePic: user.profilePic 
+      profilePic: user.profilePic,
+      bio: user.bio 
     };
     const sessionToken = await encrypt(sessionData);
 

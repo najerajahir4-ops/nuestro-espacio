@@ -7,6 +7,7 @@ interface User {
   name: string;
   colorTheme: string | null;
   profilePic: string | null;
+  bio: string | null;
 }
 
 interface AppState {
