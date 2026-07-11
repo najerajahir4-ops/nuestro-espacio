@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Plus, X, Upload, Trash2, Folder, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle } from 'lucide-react';
+import { Loader2, Plus, X, Upload, Trash2, Folder, Lock, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -26,6 +26,7 @@ interface AlbumItem {
   id: string;
   name: string;
   description?: string | null;
+  hasPassword?: boolean;
   createdAt: string;
   user: { name: string };
   media: { url: string; type: string }[];
@@ -54,7 +55,15 @@ export default function GalleryPage() {
   // Create Album Form State
   const [newAlbumName, setNewAlbumName] = useState('');
   const [newAlbumDesc, setNewAlbumDesc] = useState('');
+  const [newAlbumHasPassword, setNewAlbumHasPassword] = useState(false);
+  const [newAlbumPassword, setNewAlbumPassword] = useState('');
   const [creatingAlbum, setCreatingAlbum] = useState(false);
+
+  // Album Unlock State
+  const [activeAlbumPassword, setActiveAlbumPassword] = useState('');
+  const [albumToUnlock, setAlbumToUnlock] = useState<AlbumItem | null>(null);
+  const [unlockPassword, setUnlockPassword] = useState('');
+  const [unlockError, setUnlockError] = useState('');
 
   // Upload Form State
   const [file, setFile] = useState<File | null>(null);
@@ -80,6 +89,9 @@ export default function GalleryPage() {
       let url = '/api/gallery?';
       if (activeAlbum) {
         url += `albumId=${activeAlbum.id}&`;
+        if (activeAlbumPassword) {
+          url += `password=${encodeURIComponent(activeAlbumPassword)}&`;
+        }
       }
       
       // Compute range query parameters
@@ -114,7 +126,7 @@ export default function GalleryPage() {
   // Sync media list
   useEffect(() => {
     fetchMedia();
-  }, [activeAlbum, dateFilterType, startDate, endDate]);
+  }, [activeAlbum, dateFilterType, startDate, endDate, activeAlbumPassword]);
 
   // Sync albums list
   useEffect(() => {
@@ -165,15 +177,21 @@ export default function GalleryPage() {
 
     setCreatingAlbum(true);
     try {
+      const body: any = { name: newAlbumName, description: newAlbumDesc };
+      if (newAlbumHasPassword && newAlbumPassword) {
+        body.password = newAlbumPassword;
+      }
       const res = await fetch('/api/albums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newAlbumName, description: newAlbumDesc })
+        body: JSON.stringify(body)
       });
       const data = await res.json();
       if (data.success) {
         setNewAlbumName('');
         setNewAlbumDesc('');
+        setNewAlbumHasPassword(false);
+        setNewAlbumPassword('');
         setShowCreateAlbumModal(false);
         fetchAlbums();
       }
@@ -181,6 +199,17 @@ export default function GalleryPage() {
       console.error(err);
     } finally {
       setCreatingAlbum(false);
+    }
+  };
+
+  const handleUnlock = () => {
+    if (albumToUnlock) {
+      setActiveAlbum(albumToUnlock);
+      setActiveAlbumPassword(unlockPassword);
+      setActiveTab('all');
+      setAlbumToUnlock(null);
+      setUnlockPassword('');
+      setUnlockError('');
     }
   };
 
@@ -250,7 +279,6 @@ export default function GalleryPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
-              // Pre-fill album selection if inside one
               if (activeAlbum) setUploadAlbumId(activeAlbum.id);
               setShowModal(true);
             }}
@@ -261,7 +289,6 @@ export default function GalleryPage() {
         </div>
       </header>
 
-      {/* Navigation tabs */}
       {!activeAlbum && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex bg-muted/30 p-1.5 rounded-2xl w-full md:w-auto max-w-xs relative z-10">
@@ -290,7 +317,6 @@ export default function GalleryPage() {
             ))}
           </div>
 
-          {/* Date filters (Only shown when not inside an album view) */}
           {activeTab === 'all' && (
             <div className="flex flex-wrap items-center gap-2 bg-muted/15 p-1.5 rounded-2xl w-full md:w-auto">
               <span className="text-xs font-semibold text-muted-foreground px-3 flex items-center gap-1.5">
@@ -337,12 +363,12 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Inside Album Info Bar */}
       {activeAlbum && (
         <div className="mb-6 flex items-center justify-between bg-accent/5 p-4 rounded-[2rem] border border-accent/10">
           <button
             onClick={() => {
               setActiveAlbum(null);
+              setActiveAlbumPassword('');
               setActiveTab('albums');
             }}
             className="flex items-center gap-2 text-xs font-semibold text-accent hover:underline"
@@ -356,7 +382,6 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Main Grid View */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-accent" />
@@ -364,9 +389,7 @@ export default function GalleryPage() {
       ) : (
         <>
           {activeTab === 'albums' && !activeAlbum ? (
-            /* --- Albums Grid --- */
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {/* "Create Album" Button Card */}
               <motion.div
                 whileHover={{ y: -4 }}
                 onClick={() => setShowCreateAlbumModal(true)}
@@ -382,7 +405,14 @@ export default function GalleryPage() {
                   <motion.div
                     whileHover={{ y: -4 }}
                     key={album.id}
-                    onClick={() => setActiveAlbum(album)}
+                    onClick={() => {
+                      if (album.hasPassword) {
+                        setAlbumToUnlock(album);
+                      } else {
+                        setActiveAlbum(album);
+                        setActiveTab('all');
+                      }
+                    }}
                     className="bg-card border border-muted/50 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col h-52 group"
                   >
                     <div className="relative h-36 bg-muted/40 overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -395,7 +425,12 @@ export default function GalleryPage() {
                       ) : (
                         <Folder className="w-12 h-12 text-muted-foreground/45" />
                       )}
-                      <div className="absolute top-3 right-3 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-wider">
+                      {album.hasPassword && (
+                        <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm p-1.5 rounded-full">
+                          <Lock className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                      <div className="absolute bottom-3 right-3 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-wider">
                         {album._count.media} {album._count.media === 1 ? 'item' : 'items'}
                       </div>
                     </div>
@@ -408,7 +443,6 @@ export default function GalleryPage() {
               })}
             </div>
           ) : (
-            /* --- Photos Grid (All / Inside Album) --- */
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 md:gap-2">
               {media.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
@@ -451,7 +485,6 @@ export default function GalleryPage() {
                         loading="lazy"
                       />
                     )}
-                    {/* Hover overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 pointer-events-none">
                       {item.description && <p className="text-white font-medium text-xs mb-0.5 line-clamp-1">{item.description}</p>}
                       <p className="text-white/80 text-[10px]">
@@ -465,6 +498,38 @@ export default function GalleryPage() {
           )}
         </>
       )}
+
+      {/* Unlock Album Modal */}
+      <AnimatePresence>
+        {albumToUnlock && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card w-full max-w-sm rounded-[2rem] shadow-2xl p-6 border border-muted"
+            >
+              <h3 className="text-lg font-bold mb-4 text-center">Álbum Privado 🔒</h3>
+              <input
+                type="password"
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                placeholder="Ingresa la contraseña"
+                className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm mb-4"
+              />
+              <div className="flex gap-2">
+                <button onClick={() => setAlbumToUnlock(null)} className="flex-1 py-3 rounded-2xl text-sm font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button onClick={handleUnlock} className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-accent text-accent-foreground shadow-lg shadow-accent/20">Desbloquear</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Create Album Modal */}
       <AnimatePresence>
@@ -510,6 +575,37 @@ export default function GalleryPage() {
                     className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm transition-all resize-none h-20"
                   />
                 </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="hasPassword" 
+                    checked={newAlbumHasPassword} 
+                    onChange={(e) => setNewAlbumHasPassword(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
+                  />
+                  <label htmlFor="hasPassword" className="text-sm font-semibold text-muted-foreground cursor-pointer">
+                    Proteger con contraseña
+                  </label>
+                </div>
+
+                {newAlbumHasPassword && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="space-y-1 mt-2"
+                  >
+                    <label className="text-xs font-semibold ml-1 text-muted-foreground">Contraseña</label>
+                    <input
+                      type="password"
+                      required={newAlbumHasPassword}
+                      value={newAlbumPassword}
+                      onChange={(e) => setNewAlbumPassword(e.target.value)}
+                      placeholder="Ingresa una contraseña segura"
+                      className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm transition-all"
+                    />
+                  </motion.div>
+                )}
 
                 <motion.button
                   whileHover={{ scale: 1.02 }}

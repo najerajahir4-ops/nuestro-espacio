@@ -17,6 +17,21 @@ export async function GET(request: Request) {
     const where: any = {};
 
     if (albumId) {
+      const album = await prisma.album.findUnique({
+        where: { id: albumId }
+      });
+
+      if (!album) {
+        return NextResponse.json({ error: 'Álbum no encontrado' }, { status: 404 });
+      }
+
+      if (album.password) {
+        const password = searchParams.get('password');
+        if (password !== album.password) {
+          return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 });
+        }
+      }
+
       where.albumId = albumId;
     }
 

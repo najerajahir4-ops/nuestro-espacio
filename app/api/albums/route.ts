@@ -29,7 +29,15 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json({ success: true, albums });
+    const formattedAlbums = albums.map(album => {
+      const { password, ...rest } = album;
+      return {
+        ...rest,
+        hasPassword: !!password
+      };
+    });
+
+    return NextResponse.json({ success: true, albums: formattedAlbums });
   } catch (error) {
     console.error('Fetch albums error', error);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
@@ -43,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { name, description } = await request.json();
+    const { name, description, password } = await request.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'El nombre del álbum es requerido' }, { status: 400 });
@@ -53,11 +61,14 @@ export async function POST(request: Request) {
       data: {
         name: name.trim(),
         description: description?.trim() || null,
+        password: password || null,
         userId: session.userId
       }
     });
 
-    return NextResponse.json({ success: true, album });
+    const { password: _, ...albumWithoutPassword } = album;
+    
+    return NextResponse.json({ success: true, album: albumWithoutPassword });
   } catch (error) {
     console.error('Create album error', error);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
