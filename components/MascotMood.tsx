@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 export type Mood = 'idle' | 'happy' | 'sleepy' | 'thinking' | 'typing' | 'relaxed' | 'online' | 'shy';
 
 const MOOD_IMAGES: Record<Mood, string> = {
-  idle: '/moods/idle_pose.png',
-  happy: '/moods/flower_head.png',
-  sleepy: '/moods/sleeping_hug.png',
-  thinking: '/moods/curled_tail.png',
-  typing: '/moods/cat_face.png',
-  relaxed: '/moods/glasses_lying.png',
-  online: '/moods/bow_baby.png',
-  shy: '/moods/sketch_face.png',
+  idle: '/images/idle_pose.png',
+  happy: '/images/flower_head.png',
+  sleepy: '/images/sleeping_hug.png',
+  thinking: '/images/curled_tail.png',
+  typing: '/images/cat_face.png',
+  relaxed: '/images/glasses_lying.png',
+  online: '/images/bow_baby.png',
+  shy: '/images/sketch_face.png',
 };
 
 export function MascotMood({ mood, className = "w-24 h-24" }: { mood: Mood; className?: string }) {
