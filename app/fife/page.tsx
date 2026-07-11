@@ -50,7 +50,7 @@ const STAGE_LABELS: Record<string, string> = {
 const STAGE_ORDER = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
 
 export default function FifePage() {
-  const [activeTab, setActiveTab] = useState<'news' | 'stats' | 'matches'>('news');
+  const [activeTab, setActiveTab] = useState<'stats' | 'matches'>('stats');
   const [statsTab, setStatsTab] = useState<'scorers' | 'assists'>('scorers');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -134,7 +134,6 @@ export default function FifePage() {
       {/* Main Tabs */}
       <div className="flex bg-muted/30 p-1.5 rounded-2xl mb-8 max-w-md mx-auto relative z-10">
         {[
-          { id: 'news', label: 'Noticias', icon: Newspaper },
           { id: 'stats', label: 'Estadísticas', icon: Trophy },
           { id: 'matches', label: 'Partidos', icon: Calendar }
         ].map((tab) => {
@@ -163,53 +162,6 @@ export default function FifePage() {
 
       {/* Content */}
       <AnimatePresence mode="wait">
-        {activeTab === 'news' && (
-          <motion.div
-            key="news"
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            exit="hidden"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {data?.news.map((item, idx) => (
-              <motion.a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                variants={itemVariants}
-                key={idx}
-                className="group flex flex-col bg-card border border-muted/50 rounded-[2rem] overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
-              >
-                <div className="relative h-48 w-full overflow-hidden bg-muted">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    fill
-                    unoptimized
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <span className="text-[10px] text-accent font-semibold tracking-wider uppercase">
-                      {format(new Date(item.pubDate), "d MMM, yyyy", { locale: es })}
-                    </span>
-                    <h3 className="text-base font-bold text-foreground mt-2 line-clamp-2 group-hover:text-accent transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-3 line-clamp-3">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-muted/30 text-xs font-semibold text-accent group-hover:underline">
-                    Leer artículo completo →
-                  </div>
-                </div>
-              </motion.a>
-            ))}
-          </motion.div>
-        )}
 
         {activeTab === 'stats' && (
           <motion.div
