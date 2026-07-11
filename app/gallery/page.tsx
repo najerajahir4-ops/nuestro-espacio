@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Plus, X, Upload, Trash2, Folder, Lock, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle } from 'lucide-react';
+import { MascotMood } from '@/components/MascotMood';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -387,7 +388,7 @@ export default function GalleryPage() {
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+          <MascotMood mood="thinking" className="w-24 h-24" />
         </div>
       ) : (
         <>
@@ -451,10 +452,8 @@ export default function GalleryPage() {
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1 md:gap-2">
               {media.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-20 h-20 bg-muted/40 rounded-full flex items-center justify-center mb-6">
-                    <ImageIcon className="w-10 h-10 text-muted-foreground/60" />
-                  </div>
-                  <p className="text-xl font-medium text-foreground">Aún no hay fotos.</p>
+                  <MascotMood mood="shy" className="w-32 h-32 mb-6" />
+                  <p className="text-xl font-medium text-foreground">Aún no hay recuerdos aquí.</p>
                   <p className="text-muted-foreground mt-2">Sube la primera memoria tocando el botón +</p>
                 </div>
               ) : (

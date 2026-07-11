@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Send, Edit2, Trash2, Paperclip, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { MascotMood } from '@/components/MascotMood';
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -42,7 +43,7 @@ export default function JournalPage() {
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
-  const { user } = useAppStore();
+  const { user, partnerStatus } = useAppStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -206,9 +207,26 @@ export default function JournalPage() {
   return (
     <div className="fixed inset-0 md:pl-64 bg-background z-10">
       <div className="w-full max-w-4xl mx-auto h-full flex flex-col p-6 md:p-12 pb-24 md:pb-12">
-        <header className="mb-6 flex-shrink-0">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Nuestro Diario</h1>
-          <p className="text-muted-foreground">Escribe lo que sientes, será guardado para siempre.</p>
+        <header className="mb-6 flex-shrink-0 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Nuestro Diario</h1>
+            <p className="text-muted-foreground">Escribe lo que sientes, será guardado para siempre.</p>
+          </div>
+          
+          {partnerStatus && (
+            <div className="flex flex-col items-center gap-1">
+              <MascotMood 
+                mood={partnerStatus.isOnline ? (partnerTyping ? 'typing' : 'online') : 'sleepy'} 
+                className="w-16 h-16" 
+              />
+              <div className="flex items-center gap-1.5 bg-card/50 px-3 py-1 rounded-full border border-muted/50">
+                <div className={`w-2 h-2 rounded-full ${partnerStatus.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  {partnerStatus.name} {partnerStatus.isOnline ? 'Conectado' : 'Desconectado'}
+                </span>
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Message List */}
@@ -234,7 +252,7 @@ export default function JournalPage() {
 
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+              <MascotMood mood="thinking" className="w-24 h-24" />
             </div>
           ) : (
             <AnimatePresence initial={false}>

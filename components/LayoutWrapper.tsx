@@ -6,8 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 
-import { CinnaDecor } from './CinnaDecor';
-
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === '/login';
@@ -52,7 +50,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <CinnaDecor />
       <Sidebar />
       <main className={`flex-1 transition-all duration-300 ${isLogin ? '' : 'md:ml-64'} min-h-screen relative`}>
         {children}

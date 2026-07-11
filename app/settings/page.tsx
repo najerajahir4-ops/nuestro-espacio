@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, Palette, LogOut, User } from 'lucide-react';
+import { MascotMood } from '@/components/MascotMood';
 
 const colors = [
   { name: 'Rosa Pastel', value: '#ff8fa3' },
@@ -51,9 +52,12 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-4xl mx-auto pb-32 md:pb-12">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Ajustes</h1>
-        <p className="text-muted-foreground">Personaliza tu experiencia en Nuestro Espacio.</p>
+      <header className="mb-10 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Ajustes</h1>
+          <p className="text-muted-foreground">Personaliza tu experiencia en Nuestro Espacio.</p>
+        </div>
+        <MascotMood mood="relaxed" className="w-16 h-16 hidden sm:block" />
       </header>
 
       <div className="space-y-8">

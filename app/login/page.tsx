@@ -115,7 +115,6 @@ export default function LoginPage() {
                 exit={{ opacity: 0, height: 0, scale: 0.9 }}
                 className="flex flex-col items-center justify-center text-red-500 text-sm font-medium bg-red-100/50 p-4 rounded-xl"
               >
-                <Image src="/images/4.png" alt="Enojada" width={64} height={64} className="w-16 h-16 mb-2 animate-bounce" />
                 <span>{error}</span>
               </motion.div>
             )}

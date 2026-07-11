@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Calendar, Camera, PenTool } from 'lucide-react';
 import Image from 'next/image';
+import { MascotMood } from '@/components/MascotMood';
 import { differenceInDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -87,7 +88,6 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <Image src="/images/3.png" alt="Happy Kuromi" width={80} height={80} className="w-20 h-20 animate-bounce drop-shadow-md hidden sm:block" />
           </header>
 
           <section className="mb-12">
@@ -99,14 +99,18 @@ export default function Home() {
                 <Heart className="w-48 h-48 text-accent fill-current" />
               </div>
               
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-                className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-6 z-10"
-              >
-                <Calendar className="w-8 h-8 text-accent" />
-              </motion.div>
+              <div className="flex items-center justify-center gap-4 z-10 mb-6">
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
+                  className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center"
+                >
+                  <Calendar className="w-8 h-8 text-accent" />
+                </motion.div>
+                
+                <MascotMood mood="happy" className="w-24 h-24 hidden sm:block" />
+              </div>
               
               <h2 className="text-xl md:text-2xl font-medium text-foreground mb-2 z-10">Llevamos juntos</h2>
               

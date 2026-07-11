@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Loader2, AlertCircle, Calendar, Trophy, Newspaper, Star } from 'lucide-react';
+import { MascotMood } from '@/components/MascotMood';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
@@ -90,7 +91,7 @@ export default function FifePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center md:ml-64 bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        <MascotMood mood="thinking" className="w-24 h-24" />
       </div>
     );
   }
@@ -107,9 +108,14 @@ export default function FifePage() {
 
   return (
     <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-6xl mx-auto pb-24 md:pb-12">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Espacio Fife ⚽</h1>
-        <p className="text-muted-foreground">Noticias de estrellas, fixture interactivo y estadísticas del Mundial.</p>
+      <header className="mb-8 flex items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+            Espacio Fife ⚽
+          </h1>
+          <p className="text-muted-foreground">Noticias de estrellas, fixture interactivo y estadísticas del Mundial.</p>
+        </div>
+        <MascotMood mood="idle" className="w-16 h-16 hidden sm:block" />
       </header>
 
       {data?.usingMockData && (
