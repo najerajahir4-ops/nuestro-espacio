@@ -115,7 +115,7 @@ function MuteButton() {
       onClick={toggleMute}
       whileHover={{ scale: 1.1, opacity: 1 }}
       whileTap={{ scale: 0.9 }}
-      className="fixed bottom-24 right-4 md:bottom-6 md:right-auto md:left-6 z-50 p-4 bg-card/80 backdrop-blur-md border border-muted/50 rounded-full shadow-lg text-foreground opacity-70 transition-colors hover:bg-card hover:border-accent hover:text-accent group"
+      className="fixed top-4 right-4 md:top-auto md:bottom-6 md:right-auto md:left-6 z-50 p-3 md:p-4 bg-card/80 backdrop-blur-md border border-muted/50 rounded-full shadow-lg text-foreground opacity-70 transition-colors hover:bg-card hover:border-accent hover:text-accent group"
       aria-label={showMuted ? "Unmute music" : "Mute music"}
     >
       <AnimatePresence mode="wait">
