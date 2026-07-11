@@ -7,7 +7,10 @@ import { Loader2, Send, Edit2, Trash2, Paperclip, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import Lightbox from "yet-another-react-lightbox";
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+
+const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false });
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import "yet-another-react-lightbox/styles.css";
 
@@ -241,7 +244,7 @@ export default function JournalPage() {
                   animate={{ opacity: 1 }} 
                   className="flex flex-col items-center justify-center h-full text-center space-y-4"
                 >
-                  <img src="/images/2.png" alt="Esperando mensaje" className="w-32 h-32 rounded-3xl shadow-lg opacity-80" />
+                  <Image src="/images/2.png" alt="Esperando mensaje" width={128} height={128} className="w-32 h-32 rounded-3xl shadow-lg opacity-80" />
                   <p className="text-muted-foreground font-medium">Aún no hay mensajes.<br/>¡Escribe el primero!</p>
                 </motion.div>
               ) : (
@@ -261,7 +264,7 @@ export default function JournalPage() {
                         {/* Avatar */}
                         <div className="flex-shrink-0 mb-1">
                           {entry.user.profilePic ? (
-                            <img src={entry.user.profilePic} alt={entry.user.name} className="w-8 h-8 rounded-full object-cover" />
+                            <Image src={entry.user.profilePic || '/images/user.png'} alt={entry.user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xs font-bold">
                               {entry.user.name[0].toUpperCase()}
@@ -308,15 +311,17 @@ export default function JournalPage() {
                               ) : (
                                 <div className="flex flex-col overflow-hidden rounded-[1.3rem]">
                                   {entry.type === 'image' && entry.mediaUrl && (
-                                    <img 
-                                      src={entry.mediaUrl} 
-                                      alt="Adjunto" 
-                                      className="max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() => {
-                                        setLightboxIndex(getSlideIndex(entry.id));
-                                        setLightboxOpen(true);
-                                      }}
-                                    />
+                                    <div className="relative w-64 h-64 cursor-pointer" onClick={() => {
+                                      setLightboxIndex(getSlideIndex(entry.id));
+                                      setLightboxOpen(true);
+                                    }}>
+                                      <Image 
+                                        src={entry.mediaUrl} 
+                                        alt="Foto adjunta" 
+                                        fill
+                                        className="object-cover transition-transform duration-300 hover:scale-105" 
+                                      />
+                                    </div>
                                   )}
                                   {entry.content && (
                                     <div className={`px-4 py-3 whitespace-pre-wrap ${entry.type === 'image' ? 'text-sm' : ''}`}>
@@ -348,7 +353,7 @@ export default function JournalPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="relative w-24 h-24 rounded-xl overflow-hidden border border-muted"
               >
-                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                <Image src={previewUrl} alt="Preview" fill unoptimized className="object-cover" />
                 <button 
                   onClick={removeFile}
                   className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"

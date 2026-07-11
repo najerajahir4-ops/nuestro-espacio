@@ -13,7 +13,12 @@ export async function GET() {
 
     // Fetch all albums in the DB (since kenny and ashley share the same app database)
     const albums = await prisma.album.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        password: true,
+        createdAt: true,
         user: {
           select: { name: true }
         },

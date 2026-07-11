@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Loader2, Palette, LogOut, User } from 'lucide-react';
@@ -60,7 +61,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
               {user?.profilePic ? (
-                <img src={user.profilePic} alt={user.name} className="w-16 h-16 rounded-full object-cover shadow-sm bg-muted/20" />
+                <Image src={user.profilePic} alt={user.name} width={64} height={64} className="w-16 h-16 rounded-full object-cover shadow-sm bg-muted/20" />
               ) : (
                 <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center">
                   <User className="w-8 h-8 text-accent" />

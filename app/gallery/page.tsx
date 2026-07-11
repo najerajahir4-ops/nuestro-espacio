@@ -7,7 +7,10 @@ import { Loader2, Plus, X, Upload, Trash2, Folder, Lock, Calendar, ArrowLeft, Im
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import Lightbox from "yet-another-react-lightbox";
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+
+const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false });
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Video from "yet-another-react-lightbox/plugins/video";
 import "yet-another-react-lightbox/styles.css";
@@ -420,7 +423,9 @@ export default function GalleryPage() {
                         cover.type === 'video' ? (
                           <video src={cover.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted />
                         ) : (
-                          <img src={cover.url} alt={album.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="relative w-full h-full">
+                          <Image src={cover.url} alt={album.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
                         )
                       ) : (
                         <Folder className="w-12 h-12 text-muted-foreground/45" />
@@ -467,23 +472,25 @@ export default function GalleryPage() {
                   >
                     {item.type === 'video' ? (
                       <div className="relative w-full h-full">
-                        <img 
+                        <Image 
                           src={item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg')} 
                           alt={item.description || 'Video'} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                          loading="lazy"
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105" 
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/10">
                           <PlayCircle className="w-8 h-8 text-white drop-shadow-md" />
                         </div>
                       </div>
                     ) : (
-                      <img 
-                        src={item.url} 
-                        alt={item.description || 'Recuerdo'} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                        loading="lazy"
-                      />
+                      <div className="relative w-full h-full">
+                        <Image 
+                          src={item.url} 
+                          alt={item.description || 'Recuerdo'} 
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                        />
+                      </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 pointer-events-none">
                       {item.description && <p className="text-white font-medium text-xs mb-0.5 line-clamp-1">{item.description}</p>}

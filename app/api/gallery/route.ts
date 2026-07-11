@@ -48,7 +48,13 @@ export async function GET(request: Request) {
     const media = await prisma.media.findMany({
       where,
       orderBy: { date: 'desc' },
-      include: {
+      select: {
+        id: true,
+        url: true,
+        type: true,
+        description: true,
+        date: true,
+        albumId: true,
         user: {
           select: { name: true, colorTheme: true }
         }

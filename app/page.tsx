@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Calendar, Camera, PenTool } from 'lucide-react';
+import Image from 'next/image';
 import { differenceInDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -86,7 +87,7 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <img src="/images/3.png" alt="Happy Kuromi" className="w-20 h-20 animate-bounce drop-shadow-md hidden sm:block" />
+            <Image src="/images/3.png" alt="Happy Kuromi" width={80} height={80} className="w-20 h-20 animate-bounce drop-shadow-md hidden sm:block" />
           </header>
 
           <section className="mb-12">

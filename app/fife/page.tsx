@@ -5,6 +5,7 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Loader2, AlertCircle, Calendar, Trophy, Newspaper, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Image from 'next/image';
 
 interface NewsItem {
   title: string;
@@ -175,10 +176,12 @@ export default function FifePage() {
                 className="group flex flex-col bg-card border border-muted/50 rounded-[2rem] overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
               >
                 <div className="relative h-48 w-full overflow-hidden bg-muted">
-                  <img
+                  <Image
                     src={item.imageUrl}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    unoptimized
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between">
@@ -236,7 +239,7 @@ export default function FifePage() {
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-bold text-muted-foreground w-6 text-center">{idx + 1}</span>
                       {item.team.crest ? (
-                        <img src={item.team.crest} alt={item.team.name} className="w-8 h-8 object-contain" />
+                        <Image src={item.team.crest} alt={item.team.name} width={32} height={32} unoptimized className="object-contain" />
                       ) : (
                         <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs">⚽</div>
                       )}
@@ -257,7 +260,7 @@ export default function FifePage() {
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-bold text-muted-foreground w-6 text-center">{idx + 1}</span>
                       {item.team.crest ? (
-                        <img src={item.team.crest} alt={item.team.name} className="w-8 h-8 object-contain" />
+                        <Image src={item.team.crest} alt={item.team.name} width={32} height={32} unoptimized className="object-contain" />
                       ) : (
                         <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs">⚽</div>
                       )}
@@ -329,7 +332,7 @@ export default function FifePage() {
                               {/* Home */}
                               <div className="flex items-center gap-3">
                                 {match.homeTeam?.crest ? (
-                                  <img src={match.homeTeam.crest} alt={match.homeTeam.name || 'Equipo'} className="w-6 h-6 object-contain flex-shrink-0" />
+                                  <Image src={match.homeTeam.crest} alt={match.homeTeam.name || 'Equipo'} width={24} height={24} unoptimized className="object-contain flex-shrink-0" />
                                 ) : (
                                   <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
                                 )}
@@ -338,7 +341,7 @@ export default function FifePage() {
                               {/* Away */}
                               <div className="flex items-center gap-3">
                                 {match.awayTeam?.crest ? (
-                                  <img src={match.awayTeam.crest} alt={match.awayTeam.name || 'Equipo'} className="w-6 h-6 object-contain flex-shrink-0" />
+                                  <Image src={match.awayTeam.crest} alt={match.awayTeam.name || 'Equipo'} width={24} height={24} unoptimized className="object-contain flex-shrink-0" />
                                 ) : (
                                   <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-[10px] flex-shrink-0">🛡️</div>
                                 )}
