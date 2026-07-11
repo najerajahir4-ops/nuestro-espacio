@@ -13,6 +13,8 @@ export async function GET(request: Request) {
     const albumId = searchParams.get('albumId');
     const startDateStr = searchParams.get('startDate');
     const endDateStr = searchParams.get('endDate');
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
     const where: any = {};
 
@@ -47,6 +49,7 @@ export async function GET(request: Request) {
 
     const media = await prisma.media.findMany({
       where,
+      take: limit,
       orderBy: { date: 'desc' },
       select: {
         id: true,

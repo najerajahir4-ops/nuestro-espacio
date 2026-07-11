@@ -8,23 +8,8 @@ import { MascotMood } from '@/components/MascotMood';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
+import { GalleryLightbox, MediaItem } from '@/components/GalleryLightbox';
 
-const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false });
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import Video from "yet-another-react-lightbox/plugins/video";
-import "yet-another-react-lightbox/styles.css";
-
-interface MediaItem {
-  id: string;
-  url: string;
-  type: string;
-  description: string;
-  date: string;
-  user: { name: string; colorTheme: string };
-  albumId?: string | null;
-}
 
 interface AlbumItem {
   id: string;
@@ -231,28 +216,6 @@ export default function GalleryPage() {
     }
   };
 
-  const slides = media.map((item) => {
-    if (item.type === 'video') {
-      const poster = item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg');
-      return {
-        type: 'video' as const,
-        width: 1280,
-        height: 720,
-        poster,
-        sources: [
-          {
-            src: item.url,
-            type: "video/mp4"
-          }
-        ],
-        itemData: item
-      };
-    }
-    return {
-      src: item.url,
-      itemData: item
-    };
-  });
 
   return (
     <div className="min-h-screen p-6 md:p-12 md:ml-64 max-w-6xl mx-auto pb-24 md:pb-12">
@@ -712,67 +675,19 @@ export default function GalleryPage() {
       </AnimatePresence>
 
       {/* View Media Modal (Lightbox) */}
-      <Lightbox
+      <GalleryLightbox
+        media={media}
         open={lightboxOpen}
-        close={() => setLightboxOpen(false)}
         index={lightboxIndex}
-        slides={slides}
-        plugins={[Zoom, Video]}
-        zoom={{
-          maxZoomPixelRatio: 4,
-          scrollToZoom: true,
-          doubleTapDelay: 300,
-        }}
-        on={{
-          view: ({ index }) => setLightboxIndex(index),
-        }}
-        toolbar={{
-          buttons: [
-            (() => {
-              const item = slides[lightboxIndex]?.itemData as MediaItem;
-              if (item?.user.name === user?.name) {
-                return (
-                  <button 
-                    key="delete"
-                    type="button"
-                    title="Eliminar"
-                    className="yarl__button"
-                    style={{ padding: '8px' }}
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (!confirm('¿Estás seguro de eliminar este recuerdo?')) return;
-                      const res = await fetch(`/api/gallery/${item.id}`, { method: 'DELETE' });
-                      if (res.ok) {
-                        setLightboxOpen(false);
-                        fetchMedia();
-                        if (activeTab === 'albums') fetchAlbums();
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500 hover:text-red-400" />
-                  </button>
-                );
-              }
-              return null;
-            })(),
-            "close"
-          ]
-        }}
-        render={{
-          iconClose: () => <X className="w-6 h-6" />,
-          slideFooter: () => {
-            const item = slides[lightboxIndex]?.itemData as MediaItem;
-            if (!item) return null;
-            return (
-              <div className="w-full text-center px-4 pb-6 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent">
-                {item.description && (
-                  <p className="text-white text-lg font-medium mb-1">{item.description}</p>
-                )}
-                <p className="text-white/70 text-sm">
-                  Subido por {item.user.name} el {format(new Date(item.date), "d 'de' MMMM, yyyy", { locale: es })}
-                </p>
-              </div>
-            );
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+        currentUserName={user?.name}
+        onDelete={async (id) => {
+          const res = await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            setLightboxOpen(false);
+            fetchMedia();
+            if (activeTab === 'albums') fetchAlbums();
           }
         }}
       />

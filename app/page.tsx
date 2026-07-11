@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Calendar, Camera, PenTool } from 'lucide-react';
+import { Heart, Calendar, Camera, PenTool, PlayCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { MascotMood } from '@/components/MascotMood';
 import { differenceInDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Link from 'next/link';
+import { GalleryLightbox, MediaItem } from '@/components/GalleryLightbox';
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
@@ -15,11 +17,29 @@ export default function Home() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [daysTogether, setDaysTogether] = useState<number>(0);
 
+  // Recent Memories State
+  const [recentMedia, setRecentMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   useEffect(() => {
     // Hide splash after 2 seconds
     const timer = setTimeout(() => setShowSplash(false), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchRecentMedia = () => {
+    fetch('/api/gallery?limit=6')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setRecentMedia(data.media);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingMedia(false));
+  };
 
   useEffect(() => {
     // Fetch start date from config
@@ -33,6 +53,8 @@ export default function Home() {
         }
       })
       .catch(console.error);
+
+    fetchRecentMedia();
   }, []);
 
   return (
@@ -71,7 +93,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="p-6 md:p-12 md:ml-64 max-w-4xl mx-auto"
+          className="p-6 md:p-12 md:ml-64 max-w-4xl mx-auto pb-24 md:pb-12"
         >
           <header className="mb-10 pt-4 md:pt-0 flex items-center justify-between">
             <div>
@@ -133,29 +155,34 @@ export default function Home() {
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <motion.div 
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden"
-            >
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 z-10">
-                <Camera className="w-6 h-6 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2 z-10">Recuerdos</h3>
-              <p className="text-muted-foreground text-sm flex-1 z-10">Mira nuestras fotos y videos más recientes.</p>
-            </motion.div>
+            <Link href="/gallery" className="block">
+              <motion.div 
+                whileHover={{ scale: 1.02, y: -4 }}
+                className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden h-full cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 z-10">
+                  <Camera className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2 z-10">Recuerdos</h3>
+                <p className="text-muted-foreground text-sm flex-1 z-10">Mira nuestras fotos y videos más recientes.</p>
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden"
-            >
-              <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center mb-4 z-10">
-                <PenTool className="w-6 h-6 text-pink-500" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2 z-10">Diario</h3>
-              <p className="text-muted-foreground text-sm flex-1 z-10">Escribe lo que sientes hoy o lee mis notas.</p>
-            </motion.div>
+            <Link href="/journal" className="block">
+              <motion.div 
+                whileHover={{ scale: 1.02, y: -4 }}
+                className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm flex flex-col relative overflow-hidden h-full cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center mb-4 z-10">
+                  <PenTool className="w-6 h-6 text-pink-500" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2 z-10">Diario</h3>
+                <p className="text-muted-foreground text-sm flex-1 z-10">Escribe lo que sientes hoy o lee mis notas.</p>
+              </motion.div>
+            </Link>
           </section>
 
+          {/* Recent Memories Section */}
           <section>
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -163,23 +190,93 @@ export default function Home() {
               transition={{ delay: 0.6 }}
               className="bg-card border border-muted/50 p-6 rounded-[2rem] shadow-sm"
             >
-              <h3 className="text-xl font-bold text-foreground mb-4">Nuestra Música</h3>
-              <iframe 
-                style={{ borderRadius: '16px' }} 
-                src="https://open.spotify.com/embed/playlist/5MMmBjG3QRKZdDNcYmcXom?utm_source=generator&theme=0" 
-                width="100%" 
-                height="152" 
-                frameBorder="0" 
-                allowFullScreen={false} 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy"
-                className="w-full"
-              ></iframe>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Recuerdos Recientes</h3>
+              </div>
+
+              {loadingMedia ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <MascotMood mood="thinking" className="w-24 h-24 mb-4" />
+                  <p className="text-muted-foreground font-medium animate-pulse">Buscando recuerdos...</p>
+                </div>
+              ) : recentMedia.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+                    {recentMedia.map((item, index) => {
+                      const isVideo = item.type === 'video';
+                      const thumbnailUrl = isVideo 
+                        ? item.url.replace('/upload/', '/upload/w_400,h_400,c_fill,so_1,f_jpg/').replace(/\.\w+$/, '.jpg')
+                        : item.url.replace('/upload/', '/upload/w_400,h_400,c_fill/');
+
+                      return (
+                        <motion.div
+                          key={item.id}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer shadow-sm group"
+                          onClick={() => {
+                            setLightboxIndex(index);
+                            setLightboxOpen(true);
+                          }}
+                        >
+                          <Image 
+                            src={thumbnailUrl} 
+                            alt={item.description || 'Recuerdo reciente'} 
+                            fill 
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            unoptimized
+                          />
+                          {isVideo && (
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+                              <PlayCircle className="w-8 h-8 text-white drop-shadow-md" />
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-center">
+                    <Link href="/gallery" className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent/80 transition-colors bg-accent/10 px-5 py-2.5 rounded-full">
+                      Ver todos los recuerdos
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <MascotMood mood="shy" className="w-24 h-24 mb-4" />
+                  <p className="text-muted-foreground mb-4">Aún no hay recuerdos aquí.<br/>¡Sube el primero!</p>
+                  <Link href="/gallery" className="inline-flex items-center gap-2 text-sm font-medium bg-accent text-accent-foreground px-5 py-2.5 rounded-full shadow-md hover:bg-accent/90 transition-colors">
+                    <Camera className="w-4 h-4" />
+                    Ir a la Galería
+                  </Link>
+                </div>
+              )}
             </motion.div>
           </section>
 
         </motion.div>
       )}
+
+      {/* Reusable Lightbox */}
+      <GalleryLightbox
+        media={recentMedia}
+        open={lightboxOpen}
+        index={lightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+        currentUserName={user?.name}
+        onDelete={async (id) => {
+          const res = await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            setLightboxOpen(false);
+            fetchRecentMedia();
+          }
+        }}
+      />
     </div>
   );
 }
