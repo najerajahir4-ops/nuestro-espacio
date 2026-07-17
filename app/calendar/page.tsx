@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
@@ -239,7 +238,7 @@ export default function CalendarPage() {
 
           {/* Cute mascot panel */}
           <div className="bg-muted/10 border border-muted/30 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center">
-            <MascotMood mood={sexualCount > 8 ? 'excited' : 'happy'} className="w-24 h-24 mb-4" />
+            <MascotMood mood={sexualCount > 8 ? 'happy' : 'relaxed'} className="w-24 h-24 mb-4" />
             <p className="text-xs font-semibold text-muted-foreground italic">
               {sexualCount > 12 
                 ? '¡Este mes está que arde! 🔥' 
