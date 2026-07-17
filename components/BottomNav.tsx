@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Image as ImageIcon, Book, Settings, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
   { path: '/', label: 'Inicio', icon: Home },
@@ -15,13 +16,18 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { hideGallery } = useAppStore();
 
   // No mostrar en la pantalla de login
   if (pathname === '/login') return null;
 
+  const filteredNavItems = hideGallery
+    ? navItems.filter(item => item.path !== '/gallery')
+    : navItems;
+
   return (
     <nav className="fixed bottom-0 left-0 w-full h-16 bg-card border-t border-muted/50 flex items-center justify-around z-50 md:hidden pb-safe">
-      {navItems.map((item) => {
+      {filteredNavItems.map((item) => {
         const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`) && item.path !== '/';
         const Icon = item.icon;
 

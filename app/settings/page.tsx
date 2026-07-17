@@ -5,7 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Palette, LogOut, User, Music, Camera, Edit2, Check, X, Heart } from 'lucide-react';
+import { Loader2, Palette, LogOut, User, Music, Camera, Edit2, Check, X, Heart, Image as ImageIcon } from 'lucide-react';
 import { MascotMood } from '@/components/MascotMood';
 import { useAudio } from '@/components/AudioProvider';
 
@@ -18,7 +18,7 @@ const colors = [
 ];
 
 export default function SettingsPage() {
-  const { user, setUser, theme, setTheme, accentColor, setAccentColor } = useAppStore();
+  const { user, setUser, theme, setTheme, accentColor, setAccentColor, hideGallery, setHideGallery } = useAppStore();
   const { volume, isMuted, setVolume, toggleMute } = useAudio();
   const [loading, setLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -388,6 +388,40 @@ export default function SettingsPage() {
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                     isMuted || volume === 0 ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section variants={itemVariants} className="bg-card border border-muted/50 rounded-[2rem] p-6 shadow-sm">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: accentColor ? `${accentColor}33` : undefined }}>
+              <ImageIcon className="w-6 h-6 transition-colors" style={{ color: accentColor }} />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Secciones</h2>
+              <p className="text-muted-foreground text-sm">Controla la visibilidad de las pestañas</p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-muted/50">
+              <div>
+                <p className="font-medium">Ocultar Galería</p>
+                <p className="text-xs text-muted-foreground">Oculta la sección de Galería del menú lateral y barra de navegación</p>
+              </div>
+              <button
+                onClick={() => setHideGallery(!hideGallery)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  hideGallery ? 'bg-accent' : 'bg-muted-foreground/30'
+                }`}
+                style={{ backgroundColor: hideGallery ? accentColor : undefined }}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    hideGallery ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>

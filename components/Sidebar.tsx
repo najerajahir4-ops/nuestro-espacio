@@ -16,9 +16,13 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { partnerStatus } = useAppStore();
+  const { partnerStatus, hideGallery } = useAppStore();
 
   if (pathname === '/login') return null;
+
+  const filteredNavItems = hideGallery
+    ? navItems.filter(item => item.path !== '/gallery')
+    : navItems;
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen bg-card border-r border-muted/50 fixed left-0 top-0 z-50">
@@ -28,7 +32,7 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 px-4 py-8 space-y-2">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`) && item.path !== '/';
           const Icon = item.icon;
 
