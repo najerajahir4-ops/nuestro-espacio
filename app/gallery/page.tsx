@@ -55,7 +55,9 @@ export default function GalleryPage() {
   const [unlockError, setUnlockError] = useState('');
 
   // Upload Form State
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<{ name: string; url: string; type: string }[]>([]);
+  const [uploadProgress, setUploadProgress] = useState('');
   const [description, setDescription] = useState('');
   const [uploadAlbumId, setUploadAlbumId] = useState('');
   
@@ -124,39 +126,116 @@ export default function GalleryPage() {
     }
   }, [activeTab]);
 
+  const clearSelection = () => {
+    previews.forEach(p => URL.revokeObjectURL(p.url));
+    setFiles([]);
+    setPreviews([]);
+    setDescription('');
+    setUploadAlbumId('');
+    setUploadProgress('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeSelectedFile = (index: number) => {
+    URL.revokeObjectURL(previews[index].url);
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    const newPreviews = [...previews];
+    newPreviews.splice(index, 1);
+    setFiles(newFiles);
+    setPreviews(newPreviews);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+
+    previews.forEach(p => URL.revokeObjectURL(p.url));
+
+    const newPreviews = selectedFiles.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: file.type.startsWith('video/') ? 'video' : 'image'
+    }));
+
+    setFiles(selectedFiles);
+    setPreviews(newPreviews);
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('description', description);
-    formData.append('date', new Date().toISOString());
-    // If we're inside a folder or selected one, pass albumId
-    const targetAlbumId = activeAlbum ? activeAlbum.id : uploadAlbumId;
-    if (targetAlbumId) {
-      formData.append('albumId', targetAlbumId);
-    }
+    setUploadProgress('Obteniendo firma de subida...');
 
     try {
-      const res = await fetch('/api/gallery/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (res.ok) {
-        setFile(null);
-        setDescription('');
-        setUploadAlbumId('');
-        setShowModal(false);
-        fetchMedia();
-        // Update album list so thumbnail/count refreshes
-        if (activeTab === 'albums') fetchAlbums();
+      // 1. Obtener la firma del backend
+      const signRes = await fetch('/api/gallery/upload/signature', { method: 'POST' });
+      const signData = await signRes.json();
+      if (!signRes.ok || !signData.success) {
+        throw new Error(signData.error || 'Error al autorizar la subida en Cloudinary');
       }
-    } catch (error) {
+
+      const { signature, timestamp, apiKey, cloudName, folder } = signData;
+
+      // 2. Subir cada archivo secuencialmente
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadProgress(`Subiendo archivo ${i + 1} de ${files.length}...`);
+
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+        uploadFormData.append('api_key', apiKey);
+        uploadFormData.append('timestamp', timestamp.toString());
+        uploadFormData.append('signature', signature);
+        uploadFormData.append('folder', folder);
+
+        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadError = await uploadRes.json();
+          throw new Error(uploadError.error?.message || `Error al subir el archivo: ${file.name}`);
+        }
+
+        const uploadData = await uploadRes.json();
+        const secureUrl = uploadData.secure_url;
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+
+        // 3. Guardar registro en la base de datos de Next.js
+        const targetAlbumId = activeAlbum ? activeAlbum.id : uploadAlbumId;
+        const saveRes = await fetch('/api/gallery/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: secureUrl,
+            type: fileType,
+            description,
+            date: new Date().toISOString(),
+            albumId: targetAlbumId || null,
+          }),
+        });
+
+        if (!saveRes.ok) {
+          const saveError = await saveRes.json();
+          throw new Error(saveError.error || `Error al guardar en base de datos: ${file.name}`);
+        }
+      }
+
+      clearSelection();
+      setShowModal(false);
+      fetchMedia();
+      if (activeTab === 'albums') fetchAlbums();
+
+    } catch (error: any) {
       console.error(error);
+      alert(error.message || 'Ocurrió un error inesperado al subir los archivos.');
     } finally {
       setUploading(false);
+      setUploadProgress('');
     }
   };
 
@@ -613,24 +692,55 @@ export default function GalleryPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleUpload} className="space-y-6">
+               <form onSubmit={handleUpload} className="space-y-6">
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-muted-foreground/30 rounded-[2rem] h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="border-2 border-dashed border-muted-foreground/30 rounded-[2rem] h-40 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
                 >
                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {file ? file.name : 'Toca para seleccionar foto o video'}
+                  <span className="text-sm font-medium text-muted-foreground px-4 text-center">
+                    {files.length > 0 
+                      ? `${files.length} archivo(s) seleccionado(s)` 
+                      : 'Toca para seleccionar fotos o videos'}
                   </span>
                   <input 
                     ref={fileInputRef}
                     type="file" 
                     accept="image/*,video/*"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    multiple
+                    onChange={handleFileChange}
                     className="hidden" 
-                    required
+                    required={files.length === 0}
                   />
                 </div>
+
+                {/* Previsualizaciones */}
+                {previews.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 max-h-36 overflow-y-auto p-1 border border-muted/50 rounded-2xl bg-muted/10">
+                    {previews.map((preview, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
+                        {preview.type === 'video' ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 text-white">
+                            <PlayCircle className="w-6 h-6 text-accent mb-1" />
+                            <span className="text-[8px] truncate max-w-full px-1">{preview.name}</span>
+                          </div>
+                        ) : (
+                          <img src={preview.url} alt={preview.name} className="object-cover w-full h-full" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSelectedFile(index);
+                          }}
+                          className="absolute top-1 right-1 bg-black/75 hover:bg-black text-white rounded-full p-1 shadow transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Optional Album selection (Not shown if already inside an activeAlbum) */}
                 {!activeAlbum && albums.length > 0 && (
@@ -663,10 +773,17 @@ export default function GalleryPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   type="submit"
-                  disabled={uploading || !file}
+                  disabled={uploading || files.length === 0}
                   className="w-full bg-accent text-accent-foreground py-3.5 rounded-2xl font-semibold shadow-lg shadow-accent/20 flex items-center justify-center transition-all disabled:opacity-70 text-sm"
                 >
-                  {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar Recuerdo'}
+                  {uploading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-accent-foreground" />
+                      <span>{uploadProgress || 'Guardando...'}</span>
+                    </div>
+                  ) : (
+                    'Guardar Recuerdos'
+                  )}
                 </motion.button>
               </form>
             </motion.div>

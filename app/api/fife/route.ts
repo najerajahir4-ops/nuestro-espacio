@@ -20,7 +20,7 @@ function parseMarcaRSS(xmlText: string) {
     const pubDateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
     const pubDate = pubDateMatch ? pubDateMatch[1] : '';
 
-    let descriptionMatch = itemXml.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/i) || itemXml.match(/<description>([\s\S]*?)<\/description>/i);
+    const descriptionMatch = itemXml.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/i) || itemXml.match(/<description>([\s\S]*?)<\/description>/i);
     let description = descriptionMatch ? descriptionMatch[1] : '';
     description = description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
 
