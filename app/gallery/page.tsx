@@ -32,7 +32,7 @@ export default function GalleryPage() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Tab & Album Navigation State
-  const [activeTab, setActiveTab] = useState<'all' | 'albums'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'albums'>('albums');
   const [activeAlbum, setActiveAlbum] = useState<AlbumItem | null>(null);
   const [showCreateAlbumModal, setShowCreateAlbumModal] = useState(false);
   
@@ -335,7 +335,7 @@ export default function GalleryPage() {
         </div>
       </header>
 
-      {!activeAlbum && (
+      {/* {!activeAlbum && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex bg-muted/30 p-1.5 rounded-2xl w-full md:w-auto max-w-xs relative z-10">
             {[
@@ -407,7 +407,7 @@ export default function GalleryPage() {
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       {activeAlbum && (
         <div className="mb-6 flex items-center justify-between bg-accent/5 p-4 rounded-[2rem] border border-accent/10">
