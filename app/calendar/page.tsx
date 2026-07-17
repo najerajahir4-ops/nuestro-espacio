@@ -19,7 +19,7 @@ import { MascotMood } from '@/components/MascotMood';
 interface CalendarEvent {
   id: string;
   date: string; // ISO string
-  type: 'sexual' | 'important';
+  type: 'sexual' | 'important' | 'period';
   title?: string | null;
   notes?: string | null;
   category?: string | null;
@@ -41,7 +41,7 @@ export default function CalendarPage() {
   const [saving, setSaving] = useState(false);
 
   // Form states
-  const [eventType, setEventType] = useState<'sexual' | 'important'>('sexual');
+  const [eventType, setEventType] = useState<'sexual' | 'important' | 'period'>('sexual');
   const [eventTitle, setEventTitle] = useState('');
   const [eventNotes, setEventNotes] = useState('');
   const [eventCategory, setEventCategory] = useState('');
@@ -86,7 +86,7 @@ export default function CalendarPage() {
           type: eventType,
           title: eventType === 'important' ? eventTitle : null,
           notes: eventNotes,
-          category: eventCategory || (eventType === 'sexual' ? 'protegido' : 'otro'),
+          category: eventCategory || (eventType === 'sexual' ? 'protegido' : eventType === 'period' ? 'moderado' : 'otro'),
         }),
       });
 
@@ -301,6 +301,7 @@ export default function CalendarPage() {
                   const dayEvents = getEventsOfDay(cellDate);
                   const hasSexual = dayEvents.some(e => e.type === 'sexual');
                   const hasImportant = dayEvents.some(e => e.type === 'important');
+                  const hasPeriod = dayEvents.some(e => e.type === 'period');
                   
                   // Highlight today
                   const isToday = isSameDayDate(new Date(), cellDate.toISOString());
@@ -344,6 +345,16 @@ export default function CalendarPage() {
                             title="Evento Especial"
                           >
                             ❤️
+                          </motion.span>
+                        )}
+                        {hasPeriod && (
+                          <motion.span 
+                            initial={{ scale: 0.8 }} 
+                            animate={{ scale: 1 }} 
+                            className="text-base drop-shadow-sm filter saturate-125"
+                            title="Periodo Menstrual"
+                          >
+                            🩸
                           </motion.span>
                         )}
                       </div>
@@ -413,12 +424,14 @@ export default function CalendarPage() {
                         >
                           <div className="flex items-start gap-3">
                             <span className="text-xl pt-0.5 select-none">
-                              {event.type === 'sexual' ? '🔥' : '❤️'}
+                              {event.type === 'sexual' ? '🔥' : event.type === 'period' ? '🩸' : '❤️'}
                             </span>
                             <div>
                               <p className="text-sm font-bold text-foreground">
                                 {event.type === 'sexual' 
                                   ? `Actividad Íntima (${event.category})`
+                                  : event.type === 'period'
+                                  ? `Periodo Menstrual (${event.category})`
                                   : event.title}
                               </p>
                               {event.notes && (
@@ -464,22 +477,22 @@ export default function CalendarPage() {
                     Agregar nuevo registro
                   </h4>
 
-                  {/* Selector de tipo (Sexual / Evento) */}
-                  <div className="flex bg-muted/40 p-1 rounded-2xl border border-muted/20">
+                  {/* Selector de tipo (Sexual / Evento / Periodo) */}
+                  <div className="flex bg-muted/40 p-1 rounded-2xl border border-muted/20 gap-1">
                     <button
                       type="button"
                       onClick={() => {
                         setEventType('sexual');
                         setEventCategory('protegido');
                       }}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                         eventType === 'sexual' 
                           ? 'bg-card text-foreground shadow-sm' 
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <Flame className="w-4 h-4 text-pink-500 fill-pink-500/10" />
-                      Actividad Íntima
+                      Íntimo
                     </button>
                     <button
                       type="button"
@@ -487,14 +500,29 @@ export default function CalendarPage() {
                         setEventType('important');
                         setEventCategory('cita');
                       }}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 py-2.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                         eventType === 'important' 
                           ? 'bg-card text-foreground shadow-sm' 
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <Heart className="w-4 h-4 text-accent fill-accent/10" />
-                      Evento Especial
+                      Especial
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEventType('period');
+                        setEventCategory('moderado');
+                      }}
+                      className={`flex-1 py-2.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                        eventType === 'period' 
+                          ? 'bg-card text-foreground shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="text-sm">🩸</span>
+                      Periodo
                     </button>
                   </div>
 
@@ -526,6 +554,13 @@ export default function CalendarPage() {
                           <option value="sin proteccion">Sin protección ⚠️</option>
                           <option value="oral">Oral 👅</option>
                           <option value="otro">Otro 🌶️</option>
+                        </>
+                      ) : eventType === 'period' ? (
+                        <>
+                          <option value="moderado">Flujo Moderado 🩸</option>
+                          <option value="leve">Flujo Leve 💧</option>
+                          <option value="abundante">Flujo Abundante 🌊</option>
+                          <option value="colicos">Cólicos / Doloroso ⚡</option>
                         </>
                       ) : (
                         <>
