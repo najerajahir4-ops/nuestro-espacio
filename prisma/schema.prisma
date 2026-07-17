@@ -29,6 +29,7 @@ model User {
   albums         Album[]
   journalEntries JournalEntry[]
   messages       Message[]
+  calendarEvents CalendarEvent[]
 }
 
 model Media {
@@ -99,4 +100,18 @@ model Album {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   media       Media[]
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  date        DateTime
+  type        String   // "sexual" or "important"
+  title       String?
+  notes       String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
