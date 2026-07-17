@@ -270,14 +270,26 @@ export default function GalleryPage() {
     }
   };
 
-  const handleUnlock = () => {
-    if (albumToUnlock) {
-      setActiveAlbum(albumToUnlock);
-      setActiveAlbumPassword(unlockPassword);
-      setActiveTab('all');
-      setAlbumToUnlock(null);
-      setUnlockPassword('');
-      setUnlockError('');
+  const handleUnlock = async () => {
+    if (!albumToUnlock) return;
+    
+    setUnlockError('');
+    try {
+      const res = await fetch(`/api/gallery?albumId=${albumToUnlock.id}&password=${encodeURIComponent(unlockPassword)}`);
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setActiveAlbum(albumToUnlock);
+        setActiveAlbumPassword(unlockPassword);
+        setMedia(data.media);
+        setActiveTab('all');
+        setAlbumToUnlock(null);
+        setUnlockPassword('');
+      } else {
+        setUnlockError(data.error || 'Contraseña incorrecta');
+      }
+    } catch (err) {
+      setUnlockError('Error al validar la contraseña');
     }
   };
 
@@ -563,16 +575,40 @@ export default function GalleryPage() {
               className="bg-card w-full max-w-sm rounded-[2rem] shadow-2xl p-6 border border-muted"
             >
               <h3 className="text-lg font-bold mb-4 text-center">Álbum Privado 🔒</h3>
+              
+              {unlockError && (
+                <p className="text-xs text-red-500 font-semibold mb-3 text-center bg-red-500/10 border border-red-500/20 py-2.5 px-3 rounded-xl">
+                  {unlockError}
+                </p>
+              )}
+
               <input
                 type="password"
                 value={unlockPassword}
                 onChange={(e) => setUnlockPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleUnlock();
+                }}
                 placeholder="Ingresa la contraseña"
                 className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm mb-4"
               />
               <div className="flex gap-2">
-                <button onClick={() => setAlbumToUnlock(null)} className="flex-1 py-3 rounded-2xl text-sm font-semibold text-muted-foreground hover:bg-muted">Cancelar</button>
-                <button onClick={handleUnlock} className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-accent text-accent-foreground shadow-lg shadow-accent/20">Desbloquear</button>
+                <button 
+                  onClick={() => {
+                    setAlbumToUnlock(null);
+                    setUnlockPassword('');
+                    setUnlockError('');
+                  }} 
+                  className="flex-1 py-3 rounded-2xl text-sm font-semibold text-muted-foreground hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleUnlock} 
+                  className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-accent text-accent-foreground shadow-lg shadow-accent/20"
+                >
+                  Desbloquear
+                </button>
               </div>
             </motion.div>
           </motion.div>
