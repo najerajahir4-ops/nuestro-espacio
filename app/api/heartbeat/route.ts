@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     // Partner is the one who is NOT the current user
     const partner = await prisma.user.findFirst({
       where: { id: { not: session.userId } },
-      select: { lastSeen: true, name: true, profilePic: true },
+      select: { id: true, lastSeen: true, name: true, profilePic: true },
     });
 
     if (!partner) return NextResponse.json({ error: 'No partner found' }, { status: 404 });
@@ -37,11 +37,19 @@ export async function GET(request: Request) {
       ? (new Date().getTime() - new Date(partner.lastSeen).getTime()) < 30000 
       : false;
 
+    // Fetch the latest journal entry created by the partner
+    const latestJournal = await prisma.journalEntry.findFirst({
+      where: { userId: partner.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, content: true, type: true, createdAt: true }
+    });
+
     return NextResponse.json({
       name: partner.name,
       isOnline,
       lastSeen: partner.lastSeen,
-      profilePic: partner.profilePic
+      profilePic: partner.profilePic,
+      latestJournal
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to get partner status' }, { status: 500 });
