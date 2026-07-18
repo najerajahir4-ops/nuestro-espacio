@@ -9,7 +9,7 @@ import { es } from 'date-fns/locale';
 import { MascotMood } from '@/components/MascotMood';
 
 import dynamic from 'next/dynamic';
-import { formatImageUrl } from '@/lib/cloudinary';
+import { formatImageUrl, getOptimizedImageUrl } from '@/lib/cloudinary';
 import Image from 'next/image';
 
 
@@ -104,7 +104,7 @@ export default function JournalPage() {
     // Polling for entries
     const entriesInterval = setInterval(() => fetchEntries(true), 5000);
     // Polling for typing status
-    const typingInterval = setInterval(fetchTypingStatus, 2000);
+    const typingInterval = setInterval(fetchTypingStatus, 3500); // Optimized typing status interval for performance
     
     return () => {
       clearInterval(entriesInterval);
@@ -287,7 +287,7 @@ export default function JournalPage() {
                         {/* Avatar */}
                         <div className="flex-shrink-0 mb-1">
                           {entry.user.profilePic ? (
-                            <Image src={formatImageUrl(entry.user.profilePic) || '/images/user.png'} alt={entry.user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                            <Image src={getOptimizedImageUrl(entry.user.profilePic, { width: 80, height: 80, cropFace: true }) || '/images/user.png'} alt={entry.user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xs font-bold">
                               {entry.user.name[0].toUpperCase()}
@@ -339,7 +339,7 @@ export default function JournalPage() {
                                       setLightboxOpen(true);
                                     }}>
                                       <Image 
-                                        src={formatImageUrl(entry.mediaUrl)} 
+                                        src={getOptimizedImageUrl(entry.mediaUrl, { width: 500, crop: 'limit' })} 
                                         alt="Foto adjunta" 
                                         fill
                                         className="object-cover transition-transform duration-300 hover:scale-105" 

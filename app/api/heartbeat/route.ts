@@ -2,18 +2,45 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-// POST: Update lastSeen for the current user
+// POST: Update lastSeen for the current user and get partner's status
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session?.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
+    // 1. Update current user lastSeen
     await prisma.user.update({
       where: { id: session.userId },
       data: { lastSeen: new Date() },
     });
-    return NextResponse.json({ success: true });
+
+    // 2. Fetch partner's status
+    const partner = await prisma.user.findFirst({
+      where: { id: { not: session.userId } },
+      select: { id: true, lastSeen: true, name: true, profilePic: true },
+    });
+
+    if (!partner) return NextResponse.json({ error: 'No partner found' }, { status: 404 });
+
+    const isOnline = partner.lastSeen 
+      ? (new Date().getTime() - new Date(partner.lastSeen).getTime()) < 30000 
+      : false;
+
+    const latestJournal = await prisma.journalEntry.findFirst({
+      where: { userId: partner.id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, content: true, type: true, createdAt: true }
+    });
+
+    return NextResponse.json({
+      name: partner.name,
+      isOnline,
+      lastSeen: partner.lastSeen,
+      profilePic: partner.profilePic,
+      latestJournal
+    });
   } catch (error) {
+    console.error('Heartbeat error', error);
     return NextResponse.json({ error: 'Failed to update heartbeat' }, { status: 500 });
   }
 }

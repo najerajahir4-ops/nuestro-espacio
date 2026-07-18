@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { formatImageUrl } from '@/lib/cloudinary';
+import { formatImageUrl, getOptimizedImageUrl } from '@/lib/cloudinary';
 
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -45,8 +45,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     
     const sendHeartbeat = async () => {
       try {
-        await fetch('/api/heartbeat', { method: 'POST' });
-        const res = await fetch('/api/heartbeat');
+        const res = await fetch('/api/heartbeat', { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
           setPartnerStatus(data);
@@ -84,7 +83,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     };
 
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 6000); // check every 6s for fast real-time feedback
+    const interval = setInterval(sendHeartbeat, 10000); // Check every 10s for battery/network efficiency
     
     return () => clearInterval(interval);
   }, [user, isLogin, setPartnerStatus, pathname]);
@@ -112,8 +111,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           >
             <div className="flex-shrink-0">
               {notification.profilePic ? (
-                <img 
-                  src={formatImageUrl(notification.profilePic)} 
+                 <img 
+                  src={getOptimizedImageUrl(notification.profilePic, { width: 120, height: 120, cropFace: true })} 
                   alt={notification.name} 
                   className="w-11 h-11 rounded-full object-cover border-2 border-accent" 
                 />

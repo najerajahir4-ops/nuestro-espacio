@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { GalleryLightbox, MediaItem } from '@/components/GalleryLightbox';
-import { formatImageUrl } from '@/lib/cloudinary';
+import { formatImageUrl, getOptimizedImageUrl } from '@/lib/cloudinary';
 import Image from 'next/image';
 
 
@@ -568,7 +568,7 @@ export default function GalleryPage() {
                           <video src={cover.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted />
                         ) : (
                         <div className="relative w-full h-full">
-                          <Image src={formatImageUrl(cover.url)} alt={album.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <Image src={getOptimizedImageUrl(cover.url, { width: 400, height: 300 })} alt={album.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                         )
                       ) : (
@@ -625,14 +625,14 @@ export default function GalleryPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="relative w-full h-full">
-                        <Image 
-                          src={formatImageUrl(item.url)} 
-                          alt={item.description || 'Recuerdo'} 
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105" 
-                        />
-                      </div>
+                       <div className="relative w-full h-full">
+                         <Image 
+                           src={getOptimizedImageUrl(item.url, { width: 300, height: 300 })} 
+                           alt={item.description || 'Recuerdo'} 
+                           fill
+                           className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                         />
+                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 pointer-events-none">
                       {item.description && <p className="text-white font-medium text-xs mb-0.5 line-clamp-1">{item.description}</p>}
