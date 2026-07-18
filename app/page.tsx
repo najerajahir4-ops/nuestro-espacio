@@ -10,6 +10,8 @@ import { differenceInDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { GalleryLightbox, MediaItem } from '@/components/GalleryLightbox';
+import { formatImageUrl } from '@/lib/cloudinary';
+
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
@@ -207,9 +209,10 @@ export default function Home() {
                   <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
                     {recentMedia.map((item, index) => {
                       const isVideo = item.type === 'video';
+                      const displayUrl = formatImageUrl(item.url);
                       const thumbnailUrl = isVideo 
-                        ? item.url.replace('/upload/', '/upload/w_400,h_400,c_fill,so_1,f_jpg/').replace(/\.\w+$/, '.jpg')
-                        : item.url.replace('/upload/', '/upload/w_400,h_400,c_fill/');
+                        ? displayUrl.replace('/upload/', '/upload/w_400,h_400,c_fill,so_1,f_jpg/').replace(/\.\w+$/, '.jpg')
+                        : displayUrl.replace('/upload/', '/upload/w_400,h_400,c_fill/');
 
                       return (
                         <motion.div

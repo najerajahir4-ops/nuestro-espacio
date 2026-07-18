@@ -7,6 +7,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { formatImageUrl } from '@/lib/cloudinary';
+
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -111,7 +113,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             <div className="flex-shrink-0">
               {notification.profilePic ? (
                 <img 
-                  src={notification.profilePic} 
+                  src={formatImageUrl(notification.profilePic)} 
                   alt={notification.name} 
                   className="w-11 h-11 rounded-full object-cover border-2 border-accent" 
                 />

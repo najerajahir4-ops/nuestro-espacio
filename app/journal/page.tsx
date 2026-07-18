@@ -9,7 +9,9 @@ import { es } from 'date-fns/locale';
 import { MascotMood } from '@/components/MascotMood';
 
 import dynamic from 'next/dynamic';
+import { formatImageUrl } from '@/lib/cloudinary';
 import Image from 'next/image';
+
 
 const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false });
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -51,6 +53,7 @@ export default function JournalPage() {
   // Image Upload States
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isHeicPreview, setIsHeicPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Lightbox States
@@ -125,12 +128,14 @@ export default function JournalPage() {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
+      setIsHeicPreview(selectedFile.name.toLowerCase().endsWith('.heic') || selectedFile.name.toLowerCase().endsWith('.heif'));
       setPreviewUrl(URL.createObjectURL(selectedFile));
     }
   };
 
   const removeFile = () => {
     setFile(null);
+    setIsHeicPreview(false);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -196,7 +201,7 @@ export default function JournalPage() {
   };
 
   const mediaEntries = entries.filter(e => e.type === 'image' && e.mediaUrl);
-  const slides = mediaEntries.map(e => ({ src: e.mediaUrl! })).reverse();
+  const slides = mediaEntries.map(e => ({ src: formatImageUrl(e.mediaUrl!) })).reverse();
   const getSlideIndex = (id: string) => {
     const entry = entries.find(e => e.id === id);
     if (!entry) return 0;
@@ -282,7 +287,7 @@ export default function JournalPage() {
                         {/* Avatar */}
                         <div className="flex-shrink-0 mb-1">
                           {entry.user.profilePic ? (
-                            <Image src={entry.user.profilePic || '/images/user.png'} alt={entry.user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                            <Image src={formatImageUrl(entry.user.profilePic) || '/images/user.png'} alt={entry.user.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xs font-bold">
                               {entry.user.name[0].toUpperCase()}
@@ -334,7 +339,7 @@ export default function JournalPage() {
                                       setLightboxOpen(true);
                                     }}>
                                       <Image 
-                                        src={entry.mediaUrl} 
+                                        src={formatImageUrl(entry.mediaUrl)} 
                                         alt="Foto adjunta" 
                                         fill
                                         className="object-cover transition-transform duration-300 hover:scale-105" 
@@ -371,10 +376,17 @@ export default function JournalPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="relative w-24 h-24 rounded-xl overflow-hidden border border-muted"
               >
-                <Image src={previewUrl} alt="Preview" fill unoptimized className="object-cover" />
+                {isHeicPreview ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 text-white p-2 text-center">
+                    <span className="text-sm font-bold text-accent">HEIC</span>
+                    <span className="text-[9px] truncate max-w-full px-1 mt-1">{file?.name}</span>
+                  </div>
+                ) : (
+                  <Image src={previewUrl} alt="Preview" fill unoptimized className="object-cover" />
+                )}
                 <button 
                   onClick={removeFile}
-                  className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                  className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 z-10"
                 >
                   <X className="w-3 h-3" />
                 </button>

@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const Lightbox = dynamic(() => import('yet-another-react-lightbox'), { ssr: false });
+import { formatImageUrl } from '@/lib/cloudinary';
+
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Video from "yet-another-react-lightbox/plugins/video";
 import "yet-another-react-lightbox/styles.css";
@@ -40,8 +42,9 @@ export function GalleryLightbox({
   currentUserName,
 }: GalleryLightboxProps) {
   const slides = media.map((item) => {
+    const formattedUrl = formatImageUrl(item.url);
     if (item.type === 'video') {
-      const poster = item.url.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg');
+      const poster = formattedUrl.replace('/upload/', '/upload/so_1,f_jpg/').replace(/\.\w+$/, '.jpg');
       return {
         type: 'video' as const,
         width: 1280,
@@ -49,7 +52,7 @@ export function GalleryLightbox({
         poster,
         sources: [
           {
-            src: item.url,
+            src: formattedUrl,
             type: "video/mp4"
           }
         ],
@@ -57,7 +60,7 @@ export function GalleryLightbox({
       };
     }
     return {
-      src: item.url,
+      src: formattedUrl,
       itemData: item
     };
   });

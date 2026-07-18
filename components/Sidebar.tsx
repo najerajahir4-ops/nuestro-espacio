@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Home, Image as ImageIcon, Book, Settings, Heart, Trophy, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
+import { formatImageUrl } from '@/lib/cloudinary';
+
 
 const navItems = [
   { path: '/', label: 'Inicio', icon: Home },
@@ -67,7 +69,7 @@ export function Sidebar() {
           <div className="flex items-center gap-3 p-2 rounded-xl bg-accent/5">
             <div className="relative">
               {partnerStatus.profilePic ? (
-                <img src={partnerStatus.profilePic} alt="Pareja" className="w-10 h-10 rounded-full object-cover" />
+                <img src={formatImageUrl(partnerStatus.profilePic)} alt="Pareja" className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
                   <Heart className="w-5 h-5 text-accent" />

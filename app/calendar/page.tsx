@@ -12,6 +12,7 @@ import {
   Loader2, 
   Sparkles
 } from 'lucide-react';
+import { formatImageUrl } from '@/lib/cloudinary';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { MascotMood } from '@/components/MascotMood';
@@ -442,7 +443,7 @@ export default function CalendarPage() {
                               <div className="flex items-center gap-1.5 mt-2">
                                 {event.user.profilePic ? (
                                   <img 
-                                    src={event.user.profilePic} 
+                                    src={formatImageUrl(event.user.profilePic)} 
                                     alt={event.user.name} 
                                     className="w-4.5 h-4.5 rounded-full object-cover border border-muted/50" 
                                   />

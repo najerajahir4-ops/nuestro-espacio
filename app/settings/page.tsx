@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import Image from 'next/image';
+import { formatImageUrl } from '@/lib/cloudinary';
 import { useRouter } from 'next/navigation';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Palette, LogOut, User, Music, Camera, Edit2, Check, X, Heart, Image as ImageIcon } from 'lucide-react';
 import { MascotMood } from '@/components/MascotMood';
@@ -204,7 +206,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-4">
             <div className="relative group">
               {user?.profilePic ? (
-                <Image src={user.profilePic} alt={user.name} width={64} height={64} className="w-16 h-16 rounded-full object-cover shadow-sm bg-muted/20" />
+                <Image src={formatImageUrl(user.profilePic)} alt={user.name} width={64} height={64} className="w-16 h-16 rounded-full object-cover shadow-sm bg-muted/20" />
               ) : (
                 <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center">
                   <User className="w-8 h-8 text-accent" />

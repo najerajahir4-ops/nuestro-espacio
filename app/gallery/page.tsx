@@ -9,7 +9,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { GalleryLightbox, MediaItem } from '@/components/GalleryLightbox';
+import { formatImageUrl } from '@/lib/cloudinary';
 import Image from 'next/image';
+
 
 interface AlbumItem {
   id: string;
@@ -56,7 +58,7 @@ export default function GalleryPage() {
 
   // Upload Form State
   const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<{ name: string; url: string; type: string }[]>([]);
+  const [previews, setPreviews] = useState<{ name: string; url: string; type: string; isHeic?: boolean }[]>([]);
   const [uploadProgress, setUploadProgress] = useState('');
   const [description, setDescription] = useState('');
   const [uploadAlbumId, setUploadAlbumId] = useState('');
@@ -152,11 +154,15 @@ export default function GalleryPage() {
 
     previews.forEach(p => URL.revokeObjectURL(p.url));
 
-    const newPreviews = selectedFiles.map(file => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-      type: file.type.startsWith('video/') ? 'video' : 'image'
-    }));
+    const newPreviews = selectedFiles.map(file => {
+      const isHeic = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+      return {
+        name: file.name,
+        url: URL.createObjectURL(file),
+        type: file.type.startsWith('video/') ? 'video' : 'image',
+        isHeic
+      };
+    });
 
     setFiles(selectedFiles);
     setPreviews(newPreviews);
@@ -479,7 +485,7 @@ export default function GalleryPage() {
                           <video src={cover.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted />
                         ) : (
                         <div className="relative w-full h-full">
-                          <Image src={cover.url} alt={album.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <Image src={formatImageUrl(cover.url)} alt={album.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
                         )
                       ) : (
@@ -538,7 +544,7 @@ export default function GalleryPage() {
                     ) : (
                       <div className="relative w-full h-full">
                         <Image 
-                          src={item.url} 
+                          src={formatImageUrl(item.url)} 
                           alt={item.description || 'Recuerdo'} 
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105" 
@@ -759,6 +765,12 @@ export default function GalleryPage() {
                           <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 text-white">
                             <PlayCircle className="w-6 h-6 text-accent mb-1" />
                             <span className="text-[8px] truncate max-w-full px-1">{preview.name}</span>
+                          </div>
+                        ) : preview.isHeic ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 text-white p-2 text-center">
+                            <ImageIcon className="w-6 h-6 text-accent mb-1" />
+                            <span className="text-[9px] font-bold text-accent">HEIC</span>
+                            <span className="text-[8px] truncate max-w-full px-1 mt-0.5">{preview.name}</span>
                           </div>
                         ) : (
                           <img src={preview.url} alt={preview.name} className="object-cover w-full h-full" />
