@@ -37,6 +37,7 @@ model Media {
   url         String
   type        String   @default("image") // "image" or "video"
   description String?
+  isPinned    Boolean  @default(false)
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
   

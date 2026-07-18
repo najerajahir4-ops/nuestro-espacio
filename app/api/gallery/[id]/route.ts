@@ -35,3 +35,36 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const { isPinned } = await request.json();
+
+    const media = await prisma.media.findUnique({
+      where: { id },
+    });
+
+    if (!media) {
+      return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    }
+
+    const updated = await prisma.media.update({
+      where: { id },
+      data: {
+        isPinned: isPinned !== undefined ? !!isPinned : undefined
+      }
+    });
+
+    return NextResponse.json({ success: true, media: updated });
+  } catch (error) {
+    console.error('Update media error', error);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
+}
+

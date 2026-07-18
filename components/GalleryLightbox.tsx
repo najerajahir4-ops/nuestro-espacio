@@ -20,6 +20,7 @@ export interface MediaItem {
   date: string;
   user: { name: string; colorTheme: string };
   albumId?: string | null;
+  isPinned?: boolean;
 }
 
 interface GalleryLightboxProps {

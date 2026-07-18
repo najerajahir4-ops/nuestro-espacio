@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Plus, X, Upload, Trash2, Folder, Lock, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle } from 'lucide-react';
+import { Loader2, Plus, X, Upload, Trash2, Folder, Lock, Calendar, ArrowLeft, Image as ImageIcon, PlayCircle, Pin, Edit2 } from 'lucide-react';
 import { MascotMood } from '@/components/MascotMood';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -49,6 +49,14 @@ export default function GalleryPage() {
   const [newAlbumHasPassword, setNewAlbumHasPassword] = useState(false);
   const [newAlbumPassword, setNewAlbumPassword] = useState('');
   const [creatingAlbum, setCreatingAlbum] = useState(false);
+
+  // Edit Album Form State
+  const [showEditAlbumModal, setShowEditAlbumModal] = useState(false);
+  const [editAlbumName, setEditAlbumName] = useState('');
+  const [editAlbumDesc, setEditAlbumDesc] = useState('');
+  const [editAlbumHasPassword, setEditAlbumHasPassword] = useState(false);
+  const [editAlbumPassword, setEditAlbumPassword] = useState('');
+  const [updatingAlbum, setUpdatingAlbum] = useState(false);
 
   // Album Unlock State
   const [activeAlbumPassword, setActiveAlbumPassword] = useState('');
@@ -276,6 +284,63 @@ export default function GalleryPage() {
     }
   };
 
+  const handleEditAlbum = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeAlbum || !editAlbumName.trim()) return;
+
+    setUpdatingAlbum(true);
+    try {
+      const body: any = { 
+        name: editAlbumName, 
+        description: editAlbumDesc,
+        password: editAlbumHasPassword ? editAlbumPassword : null
+      };
+      const res = await fetch(`/api/albums/${activeAlbum.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success && data.album) {
+        const updatedAlbum = {
+          ...activeAlbum,
+          name: data.album.name,
+          description: data.album.description,
+          hasPassword: !!data.album.password
+        };
+        setActiveAlbum(updatedAlbum);
+        if (editAlbumHasPassword && editAlbumPassword) {
+          setActiveAlbumPassword(editAlbumPassword);
+        } else if (!editAlbumHasPassword) {
+          setActiveAlbumPassword('');
+        }
+        setShowEditAlbumModal(false);
+        fetchAlbums();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingAlbum(false);
+    }
+  };
+
+  const handleTogglePin = async (item: MediaItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/gallery/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: !item.isPinned })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchMedia();
+      }
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+    }
+  };
+
   const handleUnlock = async () => {
     if (!albumToUnlock) return;
     
@@ -328,15 +393,33 @@ export default function GalleryPage() {
         
         <div className="flex gap-3">
           {activeAlbum && activeAlbum.user.name === user?.name && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleDeleteAlbum(activeAlbum.id)}
-              className="w-12 h-12 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center shadow-md transition-colors"
-              title="Eliminar álbum"
-            >
-              <Trash2 className="w-5 h-5" />
-            </motion.button>
+            <div className="flex gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setEditAlbumName(activeAlbum.name);
+                  setEditAlbumDesc(activeAlbum.description || '');
+                  setEditAlbumHasPassword(activeAlbum.hasPassword || false);
+                  setEditAlbumPassword('');
+                  setShowEditAlbumModal(true);
+                }}
+                className="w-12 h-12 rounded-2xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center shadow-md transition-colors"
+                title="Editar álbum"
+              >
+                <Edit2 className="w-5 h-5" />
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleDeleteAlbum(activeAlbum.id)}
+                className="w-12 h-12 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center shadow-md transition-colors"
+                title="Eliminar álbum"
+              >
+                <Trash2 className="w-5 h-5" />
+              </motion.button>
+            </div>
           )}
 
           <motion.button
@@ -557,6 +640,19 @@ export default function GalleryPage() {
                         {format(new Date(item.date), "d MMM yyyy", { locale: es })}
                       </p>
                     </div>
+
+                    {/* Pin/Unpin Button Overlay */}
+                    <button
+                      onClick={(e) => handleTogglePin(item, e)}
+                      className={`absolute top-2 right-2 p-1.5 rounded-full z-15 backdrop-blur-md transition-all duration-300 ${
+                        item.isPinned 
+                          ? 'bg-accent text-accent-foreground opacity-100 shadow-md shadow-accent/25' 
+                          : 'bg-black/40 text-white/70 hover:text-white hover:bg-black/60 opacity-0 group-hover:opacity-100'
+                      }`}
+                      title={item.isPinned ? "Desfijar de portada" : "Fijar en portada"}
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${item.isPinned ? 'fill-current' : ''}`} />
+                    </button>
                   </motion.div>
                 ))
               )}
@@ -705,6 +801,96 @@ export default function GalleryPage() {
                   className="w-full bg-accent text-accent-foreground py-3.5 rounded-2xl font-semibold shadow-lg shadow-accent/20 flex items-center justify-center transition-all disabled:opacity-70 mt-4 text-sm"
                 >
                   {creatingAlbum ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Crear Álbum'}
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Album Modal */}
+      <AnimatePresence>
+        {showEditAlbumModal && activeAlbum && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card w-full max-w-md rounded-[2rem] shadow-2xl p-6 md:p-8 border border-muted"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold">Editar Álbum 📁</h3>
+                <button onClick={() => setShowEditAlbumModal(false)} className="p-2 rounded-full hover:bg-muted text-muted-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditAlbum} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold ml-1 text-muted-foreground">Nombre del álbum</label>
+                  <input
+                    type="text"
+                    required
+                    value={editAlbumName}
+                    onChange={(e) => setEditAlbumName(e.target.value)}
+                    placeholder="Ej. Viaje a la playa 🏖️"
+                    className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold ml-1 text-muted-foreground">Descripción (opcional)</label>
+                  <textarea
+                    value={editAlbumDesc}
+                    onChange={(e) => setEditAlbumDesc(e.target.value)}
+                    placeholder="Agrega una nota corta sobre este álbum..."
+                    className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm transition-all resize-none h-20"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="editHasPassword" 
+                    checked={editAlbumHasPassword} 
+                    onChange={(e) => setEditAlbumHasPassword(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
+                  />
+                  <label htmlFor="editHasPassword" className="text-sm font-semibold text-muted-foreground cursor-pointer">
+                    Proteger con contraseña
+                  </label>
+                </div>
+
+                {editAlbumHasPassword && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="space-y-1 mt-2"
+                  >
+                    <label className="text-xs font-semibold ml-1 text-muted-foreground">Contraseña (dejar en blanco para mantener la actual)</label>
+                    <input
+                      type="password"
+                      value={editAlbumPassword}
+                      onChange={(e) => setEditAlbumPassword(e.target.value)}
+                      placeholder="Ingresa una nueva contraseña"
+                      className="w-full px-4 py-3 rounded-2xl bg-muted/30 border border-transparent focus:border-accent focus:bg-card focus:ring-1 focus:ring-accent outline-none text-sm transition-all"
+                    />
+                  </motion.div>
+                )}
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="submit"
+                  disabled={updatingAlbum || !editAlbumName.trim()}
+                  className="w-full bg-accent text-accent-foreground py-3.5 rounded-2xl font-semibold shadow-lg shadow-accent/20 flex items-center justify-center transition-all disabled:opacity-70 mt-4 text-sm"
+                >
+                  {updatingAlbum ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar Cambios'}
                 </motion.button>
               </form>
             </motion.div>

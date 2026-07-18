@@ -50,7 +50,10 @@ export async function GET(request: Request) {
     const media = await prisma.media.findMany({
       where,
       take: limit,
-      orderBy: { date: 'desc' },
+      orderBy: [
+        { isPinned: 'desc' },
+        { date: 'desc' }
+      ],
       select: {
         id: true,
         url: true,
@@ -58,6 +61,7 @@ export async function GET(request: Request) {
         description: true,
         date: true,
         albumId: true,
+        isPinned: true,
         user: {
           select: { name: true, colorTheme: true }
         }
